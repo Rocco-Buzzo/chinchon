@@ -1,0 +1,66 @@
+package ar.edu.unlu.mvc.model.interfaces;
+
+import ar.edu.unlu.mvc.controller.Controlador;
+import ar.edu.unlu.mvc.model.clases.*;
+import ar.edu.unlu.mvc.model.enumerates.EstadoPartida;
+import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
+
+import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+
+public interface IChinchon extends Serializable, IObservableRemoto {
+    void iniciarPartida() throws RemoteException;
+
+    void establecerValores(boolean contiene, int cantidad, int puntos) throws RemoteException;
+
+    boolean cargarPartida(String nombreArchivo) throws RemoteException;
+
+    void guardarPartida(String nombreArchivo) throws RemoteException;
+
+    void cerrarRonda() throws RemoteException;
+
+    void continuarPartida() throws RemoteException;
+
+    void intercambiarCartas(int n, int m) throws RemoteException;
+
+    void agregarJugador(String name) throws RemoteException;
+
+    void cambiarJugador() throws RemoteException;
+
+    void tirarCarta(int numero) throws RemoteException;
+
+    void robarCartaMazo() throws RemoteException;
+
+    void robarCartaDescarte() throws RemoteException;
+
+    int getCantidadRondas() throws RemoteException;
+
+    EstadoPartida getEstadoDePartida() throws RemoteException;
+
+    Top getTop() throws RemoteException;
+
+    ArrayList<Jugador> getJugadores() throws RemoteException;
+
+    Jugador getGanador() throws RemoteException;
+
+    Jugador getJugadorActual() throws RemoteException;
+
+    Mazo getMazo() throws RemoteException;
+
+    Descarte getDescarte() throws RemoteException;
+
+    Carta getTopeDescarte() throws RemoteException;
+
+    void agregarObs(Controlador controlador) throws RemoteException;
+
+    int getPuntosMaximos() throws RemoteException;
+
+    void ordenarCartasPalo(String jugador) throws RemoteException;
+
+    void ordenarCartasValor(String jugador) throws RemoteException;
+
+    int getCartaPosition(Carta carta) throws RemoteException;
+
+    Jugador getJugador(String nombreJugador) throws RemoteException;
+}
