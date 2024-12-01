@@ -4,10 +4,10 @@ import ar.edu.unlu.mvc.controller.Controlador;
 import ar.edu.unlu.mvc.model.clases.*;
 import ar.edu.unlu.mvc.model.enumerates.EstadoPartida;
 import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
+import ar.edu.unlu.utilities.Cola;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 
 public interface IChinchon extends Serializable, IObservableRemoto {
     void iniciarPartida() throws RemoteException;
@@ -40,7 +40,7 @@ public interface IChinchon extends Serializable, IObservableRemoto {
 
     Top getTop() throws RemoteException;
 
-    ArrayList<Jugador> getJugadores() throws RemoteException;
+    Cola<Jugador> getJugadores() throws RemoteException;
 
     Jugador getGanador() throws RemoteException;
 
@@ -63,4 +63,6 @@ public interface IChinchon extends Serializable, IObservableRemoto {
     int getCartaPosition(Carta carta) throws RemoteException;
 
     Jugador getJugador(String nombreJugador) throws RemoteException;
+
+    int getPuntajeJugador(String nombre) throws RemoteException;
 }

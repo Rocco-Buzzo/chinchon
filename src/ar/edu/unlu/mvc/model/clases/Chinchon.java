@@ -89,8 +89,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
 
     /**
      * Funcion que le permite al cerrar la ronda actual.
-     *
-     * @return true si puede terminar, false en caso contrario.
      */
     @Override
     public void cerrarRonda() throws RemoteException {
@@ -182,9 +180,9 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     @Override
     public void cambiarJugador() throws RemoteException {
         if (this.estadoPartida == EstadoPartida.JUGANDO) {
-            for (Jugador jugador : jugadores) {
-                jugador.setTurno(!jugador.isTurno()); // Toggle each player's turn status
-            }
+            Jugador jAux;
+            jAux = jugadores.desencolar();
+            jugadores.encolar(jAux);
 
             // Update jugadorActual to the player with turno = true
             jugadorActual = getJugadorActual();
@@ -202,7 +200,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      */
     @Override
     public void tirarCarta(int numero) throws RemoteException {
-        if (jugadorActual.isTurno() && jugadorActual.getMano().getCartas().size() == 8) {
+        if (jugadorActual.getMano().getCartas().size() == 8) {
             Carta cartaAtirar = jugadorActual.tirarCarta(numero);
             for (Carta c : jugadorActual.getMano().getCartas()) {
                 if (c.equals(cartaAtirar)) {
@@ -221,7 +219,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     @Override
     public void robarCartaMazo() throws RemoteException {
         girarMazo();
-        if (jugadorActual.isTurno() && jugadorActual.getMano().getCartas().size() == 7) {
+        if (jugadorActual.getMano().getCartas().size() == 7) {
             jugadorActual.agregarCarta(mazo.sacar());
         }
     }
@@ -242,22 +240,32 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
 
     @Override
     public Jugador getJugador(String nombreJugador) throws RemoteException {
-        for (Jugador j : jugadores) {
-            if (j.getNombre().equals(nombreJugador)) {
-                return j;
-            }
+        if (jugadorActual.getNombre().equals(nombreJugador)) {
+            return jugadorActual;
+        } else {
+            return jugadores.fondo();
         }
-        return null;
+    }
+
+    @Override
+    public int getPuntajeJugador(String nombre) throws RemoteException {
+        Jugador actual = jugadores.frente();
+        while (actual != null) {
+            // Aplica tu función aquí
+            if (actual.getNombre().equals(nombre)) {
+                return actual.getPuntaje();
+            }
+            actual = jugadores.fondo();
+        }
+        return 0;
     }
 
     /**
      * Funcion para robar una carta del Descarte.
-     *
-     * @return Carta robada.
      */
     @Override
     public void robarCartaDescarte() throws RemoteException {
-        if (jugadorActual.isTurno() && jugadorActual.getMano().getCartas().size() == 7) {
+        if (jugadorActual.getMano().getCartas().size() == 7) {
             if (descarte.getTope() != null) {
                 jugadorActual.agregarCarta(descarte.desapilar());
             }
@@ -265,8 +273,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     /**
-     * Devulve la cantidad de rondas.
-     *
+     * Devuelve la cantidad de rondas.
      * @return Cantidad de rondas.
      */
     @Override
@@ -285,7 +292,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     @Override
-    public ArrayList<Jugador> getJugadores() {
+    public Cola<Jugador> getJugadores() {
         return jugadores;
     }
 
@@ -296,12 +303,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
 
     @Override
     public Jugador getJugadorActual() {
-        for (Jugador jugador : jugadores) {
-            if (jugador.isTurno()) {
-                return jugador;
-            }
-        }
-        return null; // Manejar adecuadamente si ningún jugador tiene el turno
+        return jugadores.frente();
     }
 
     @Override
@@ -331,19 +333,25 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
 
     @Override
     public void ordenarCartasValor(String jugadorName) {
-        for (Jugador jugador : jugadores) {
-            if (jugador.getNombre().equals(jugadorName)) {
-                jugador.getMano().ordenarCartaValor();
+        Jugador actual = jugadores.frente();
+        while (actual != null) {
+            // Aplica tu función aquí
+            if (actual.getNombre().equals(jugadorName)) {
+                actual.getMano().ordenarCartaValor();
             }
+            actual = jugadores.fondo();
         }
     }
 
     @Override
     public void ordenarCartasPalo(String jugadorName) {
-        for (Jugador jugador : jugadores) {
-            if (jugador.getNombre().equals(jugadorName)) {
-                jugador.getMano().ordenarCartaPalo();
+        Jugador actual = jugadores.frente();
+        while (actual != null) {
+            // Aplica tu función aquí
+            if (actual.getNombre().equals(jugadorName)) {
+                actual.getMano().ordenarCartaPalo();
             }
+            actual = jugadores.fondo();
         }
     }
 
@@ -352,8 +360,10 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      */
     private void repartir() {
         for (int i = 0; i < 7; i++) {
-            for (Jugador jugador : jugadores) {
-                jugador.agregarCarta(mazo.sacar());
+            Jugador actual = jugadores.frente();
+            while (actual != null) {
+                actual.getMano().agregarCarta(mazo.sacar());
+                actual = jugadores.fondo();
             }
         }
     }
@@ -363,12 +373,11 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      */
     private void sortearTurno() {
         Random random = new Random();
-        for (Jugador j : jugadores) {
-            j.setTurno(false);
+        int rotaciones = random.nextInt(jugadores.size());
+        for (int i = 0; i < rotaciones; i++) {
+            jugadores.encolar(jugadores.desencolar());
         }
-        int indice = random.nextInt(jugadores.size());
-        jugadores.get(indice).setTurno(true);
-        jugadorActual = jugadores.get(indice);
+        jugadorActual = jugadores.frente();
     }
 
     /**
@@ -395,10 +404,13 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      * @return true si alguno de los puntajes de los jugadores es mayor que la puntuacion maxima.
      */
     private boolean puedeTerminar() {
-        for (Jugador j : jugadores) {
-            if (j.getPuntaje() >= puntosMaximos) {
+        Jugador actual = jugadores.frente();
+        while (actual != null) {
+            actual.getMano().agregarCarta(mazo.sacar());
+            if (actual.getPuntaje() >= puntosMaximos) {
                 return true;
             }
+            actual = jugadores.fondo();
         }
         return false;
     }
@@ -407,12 +419,14 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      * Funcion para finalizar la partida. En el caso de que cualquiera de los jugadores tenga
      */
     private void terminarPartida() throws RemoteException {
-        if (getJugadores().getFirst().getPuntaje() >= puntosMaximos) {
-            ganador = getJugadores().getLast();
-            top.agregarAlTop(ganador);
-        } else if (getJugadores().getLast().getPuntaje() >= puntosMaximos) {
-            ganador = getJugadores().getFirst();
-            top.agregarAlTop(ganador);
+        Jugador actual = jugadores.frente();
+        while (actual != null) {
+            if (actual.getPuntaje() >= puntosMaximos) {
+                ganador = actual;
+                top.agregarAlTop(ganador);
+                return;
+            }
+            actual = jugadores.fondo();
         }
         estadoPartida = EstadoPartida.TERMINADA;
         notificarObservadores(Eventos.PARTIDA_TERMINADA);

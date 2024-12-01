@@ -6,7 +6,6 @@ public class Jugador implements Serializable {
     private final String nombre;
     private final Mano mano;
     private int puntaje;
-    private boolean turno;
     private int cantidadVictorias;
 
     /**
@@ -17,7 +16,6 @@ public class Jugador implements Serializable {
         this.nombre = nombre;
         this.puntaje = 0;
         this.cantidadVictorias = 0;
-        this.turno = false;
         this.mano = new Mano();
     }
 
@@ -54,14 +52,6 @@ public class Jugador implements Serializable {
     }
 
     /**
-     * Cambia el turno del jugador.
-     * @param turno true o false.
-     */
-    public void setTurno(boolean turno) {
-        this.turno = turno;
-    }
-
-    /**
      * Devuelve el nombre del jugador.
      * @return nombre del jugador.
      */
@@ -83,14 +73,6 @@ public class Jugador implements Serializable {
      */
     public int getVictorias() {
         return cantidadVictorias;
-    }
-
-    /**
-     * Devuelve si es el turno del jugador.
-     * @return true o false.
-     */
-    public boolean isTurno() {
-        return turno;
     }
 
     /**

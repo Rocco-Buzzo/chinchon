@@ -59,7 +59,7 @@ public class JuegoTest {
                 juego.cambiarJugador();
             }
 
-            Assert.assertTrue(juego.getJugadorActual().isTurno());
+            Assert.assertTrue(juego.getJugadorActual());
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }

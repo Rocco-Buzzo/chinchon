@@ -2,7 +2,6 @@ package ar.edu.unlu.mvc.view;
 
 import ar.edu.unlu.mvc.controller.Controlador;
 import ar.edu.unlu.mvc.model.clases.Carta;
-import ar.edu.unlu.mvc.model.clases.Jugador;
 import ar.edu.unlu.mvc.model.clases.Serializacion;
 
 import javax.swing.*;
@@ -121,7 +120,7 @@ public class VistaGrafica implements IVista {
         btnStart.setPreferredSize(buttonSize);
         btnStart.setBackground(new Color(26, 57, 44, 255));
         btnStart.setForeground(Color.WHITE);
-        btnStart.addActionListener(e -> {
+        btnStart.addActionListener(_ -> {
             renderSettings();
             chinchonFrame.setTitle("Configuración de Partida");
         });
@@ -135,7 +134,7 @@ public class VistaGrafica implements IVista {
         btnJoin.setForeground(Color.WHITE);
         btnJoin.addActionListener(e -> {
             controlador.agregarJugador(nombreJugador);
-            if (controlador.getJugadores().size() == 1) {
+            if (controlador.getJugadoresSize() == 1) {
                 esperandoJugadores();
             }
         });
@@ -372,7 +371,7 @@ public class VistaGrafica implements IVista {
             }
             controlador.establecerValores(contieneComodin, cantidadCartas, puntosMaximos);
             controlador.agregarJugador(nombreJugador);
-            if (controlador.getJugadores().size() == 1) {
+            if (controlador.getJugadoresSize() == 1) {
                 esperandoJugadores();
             }
         });
@@ -564,7 +563,7 @@ public class VistaGrafica implements IVista {
         infoPanel.add(puntajeLabel, gbc);
 
         gbc.gridy = 1;
-        JLabel turnoLabel = new JLabel("Turno de " + controlador.getJugadorActual().getNombre());
+        JLabel turnoLabel = new JLabel("Turno de " + controlador.getJugadorActual());
         turnoLabel.setFont(new Font("Montserrat", Font.BOLD, 24));
         turnoLabel.setForeground(Color.WHITE);
         infoPanel.add(turnoLabel, gbc);
@@ -654,11 +653,7 @@ public class VistaGrafica implements IVista {
         ArrayList<Carta> cartasAMostrar;
 
         // Si es el turno del jugador actual, mostramos sus cartas; si no, mostramos las del rival.
-        if (controlador.getJugadorActual().getNombre().equals(nombreJugador)) {
-            cartasAMostrar = controlador.getJugadorActual().getMano().getCartas();
-        } else {
-            cartasAMostrar = controlador.getJugador(nombreJugador).getMano().getCartas();
-        }
+        cartasAMostrar = controlador.getJugadorCartas(nombreJugador);
 
         // Renderizar botones de cartas
         for (Carta carta : cartasAMostrar) {
@@ -670,7 +665,7 @@ public class VistaGrafica implements IVista {
             button.setPreferredSize(buttonSize);
 
             // Solo añadimos acción para el jugador en turno
-            if (controlador.getJugadorActual().getNombre().equals(nombreJugador)) {
+            if (controlador.getJugadorActual().equals(nombreJugador)) {
                 button.addActionListener(e -> controlador.tirarCarta(controlador.getCartaPosition(carta)));
             }
 
@@ -715,7 +710,7 @@ public class VistaGrafica implements IVista {
         infoPanel.add(puntajeLabel, gbc);
 
         gbc.gridy = 1;
-        JLabel turnoLabel = new JLabel("Turno de " + controlador.getJugadorActual().getNombre());
+        JLabel turnoLabel = new JLabel("Turno de " + controlador.getJugadorActual());
         turnoLabel.setFont(new Font("Montserrat", Font.BOLD, 24));
         turnoLabel.setForeground(Color.WHITE);
         infoPanel.add(turnoLabel, gbc);
@@ -839,7 +834,7 @@ public class VistaGrafica implements IVista {
     }
 
     private void actualizarVista() {
-        jugadorActual = controlador.getJugadorActual().getNombre();
+        jugadorActual = controlador.getJugadorActual();
         if (jugadorActual.equals(nombreJugador)) {
             renderInGame();
         } else {

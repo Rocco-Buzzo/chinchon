@@ -1,7 +1,6 @@
 package ar.edu.unlu.mvc.controller;
 
 import ar.edu.unlu.mvc.model.clases.Carta;
-import ar.edu.unlu.mvc.model.clases.Descarte;
 import ar.edu.unlu.mvc.model.clases.Jugador;
 import ar.edu.unlu.mvc.model.enumerates.Eventos;
 import ar.edu.unlu.mvc.model.interfaces.IChinchon;
@@ -41,14 +40,6 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public Descarte getDescarte() {
-        try {
-            return iChinchon.getDescarte();
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public void agregarJugador(String nombre) {
         try {
             iChinchon.agregarJugador(nombre);
@@ -65,9 +56,9 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public Jugador getJugadorActual() {
+    public String getJugadorActual() {
         try {
-            return iChinchon.getJugadorActual();
+            return iChinchon.getJugadorActual().getNombre();
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -75,15 +66,10 @@ public class Controlador implements IControladorRemoto {
 
     public int getPuntaje(String nombre) {
         try {
-            for (Jugador jugador : iChinchon.getJugadores()) {
-                if (jugador.getNombre().equals(nombre)) {
-                    return jugador.getPuntaje();
-                }
-            }
+            return iChinchon.getPuntajeJugador(nombre);
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
-        return 0;
     }
 
     public boolean cargarPartida(String partidaSeleccionada) {
@@ -135,17 +121,25 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public ArrayList<Jugador> getJugadores() {
+    public int getJugadoresSize() {
         try {
-            return iChinchon.getJugadores();
+            return iChinchon.getJugadores().size();
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Jugador getJugador(String nombreJugador) {
+    public ArrayList<Carta> getJugadorCartas(String nombreJugador) {
         try {
-            return iChinchon.getJugador(nombreJugador);
+            return iChinchon.getJugador(nombreJugador).getMano().getCartas();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getJugador(String nombreJugador) {
+        try {
+            return iChinchon.getJugador(nombreJugador).getNombre();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
