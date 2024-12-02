@@ -36,4 +36,13 @@ public class DescarteTest {
         descarte.vaciarDescarte();
         assertEquals(0, descarte.getSize());
     }
+
+    @Test
+    public void testDescarte() {
+        Mazo mazo = new Mazo(true, 48);
+        Descarte descarte = new Descarte();
+        System.out.println(descarte);
+        descarte.apilar(mazo.sacar());
+        System.out.println(descarte);
+    }
 }

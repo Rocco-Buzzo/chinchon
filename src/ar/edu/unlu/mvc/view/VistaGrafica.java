@@ -21,7 +21,7 @@ public class VistaGrafica implements IVista {
 
     private final JFrame chinchonFrame = new JFrame("Chinchon - Main Menu");
     private static final Color BACKGROUND_COLOR = new Color(55, 101, 73);
-    private static final Font BTN_FONT = new Font("Montserrat", Font.BOLD, 16);
+    private static final Font BTN_FONT = new Font("Montserrat", Font.BOLD, 24);
     private static final String IMAGES_PATH = "./ar/edu/unlu/assets/";
 
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -30,7 +30,6 @@ public class VistaGrafica implements IVista {
     // Ajustar el tamaño para que no cubra la barra de tareas
     private final int FRAME_WIDTH = screenSize.width - screenInsets.left - screenInsets.right;
     private final int FRAME_HEIGHT = screenSize.height - screenInsets.top - screenInsets.bottom;
-
 
     private String jugadorActual;
 
@@ -143,6 +142,8 @@ public class VistaGrafica implements IVista {
             controlador.agregarJugador(nombreJugador);
             if (controlador.getJugadoresSize() == 1) {
                 esperandoJugadores();
+            } else {
+                startGame();
             }
         });
 
@@ -383,6 +384,8 @@ public class VistaGrafica implements IVista {
             controlador.agregarJugador(nombreJugador);
             if (controlador.getJugadoresSize() == 1) {
                 esperandoJugadores();
+            } else {
+                startGame();
             }
         });
 
@@ -550,8 +553,6 @@ public class VistaGrafica implements IVista {
         chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         JPanel inGame = jPanelMap.get("ingame-pane");
         inGame.removeAll();
-        inGame.repaint();
-        inGame.revalidate();
         inGame.setLayout(new BorderLayout());
 
         JPanel cardsPanel = new JPanel();
@@ -650,7 +651,8 @@ public class VistaGrafica implements IVista {
 
         inGame.add(playerOptionsPanel, BorderLayout.WEST);
         inGame.add(cardsPanel, BorderLayout.CENTER);
-
+        inGame.repaint();
+        inGame.revalidate();
         cardLayout.show(cardPane, "ingame-pane");
     }
 
@@ -661,7 +663,7 @@ public class VistaGrafica implements IVista {
 
         JPanel cartasEnMano = new JPanel(new FlowLayout());
         cartasEnMano.setBackground(BACKGROUND_COLOR);
-        Dimension buttonSize = new Dimension(90, 150);
+        Dimension buttonSize = new Dimension(129, 230);
 
         ArrayList<Carta> cartasAMostrar;
 
@@ -685,20 +687,85 @@ public class VistaGrafica implements IVista {
             cartasEnMano.add(button);
         }
 
+        JPanel cartasRival = new JPanel(new FlowLayout());
+        int cantidadCartasRival;
+        if (nombreJugador.equals(controlador.getJugadorActual())) {
+            cantidadCartasRival = controlador.sizeCartasJugadorNoActual();
+        } else {
+            cantidadCartasRival = controlador.getJugadorCartas(controlador.getJugadorActual()).size();
+        }
+        cartasRival.setBackground(BACKGROUND_COLOR);
+
+        // Renderizar botones de cartas
+        for (int i = 0; i < cantidadCartasRival; i++) {
+            JButton button = new JButton();
+            ImageIcon iconoOriginal = new ImageIcon("src/ar/edu/unlu/assets/REVERSO.png");
+            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+            button.setIcon(new ImageIcon(imagenRedimensionada));
+            button.setBackground(BACKGROUND_COLOR);
+            button.setBorderPainted(false);
+            button.setPreferredSize(buttonSize);
+            cartasRival.add(button);
+        }
+
+        JPanel mazoYDescarte = new JPanel(new GridBagLayout());
+        mazoYDescarte.setBackground(BACKGROUND_COLOR);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Renderizar botones de MAZO
+        JButton button = new JButton();
+        ImageIcon iconoOriginal = new ImageIcon("src/ar/edu/unlu/assets/REVERSO.png");
+        buttonSize = new Dimension(203, 360);
+        Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+        button.setIcon(new ImageIcon(imagenRedimensionada));
+        button.setBackground(BACKGROUND_COLOR);
+        button.setPreferredSize(buttonSize);
+        button.setBorderPainted(false);
+        if (nombreJugador.equals(controlador.getJugadorActual())) {
+            button.addActionListener(e -> {
+                controlador.robarCartaMazo();
+                renderCardsPane(cardsPanel);
+            });
+        }
+        mazoYDescarte.add(button, gbc);
+
+        gbc.gridx = 1;
+        // Renderizar boton de DESCARTE
+        button = new JButton();
+        iconoOriginal = new ImageIcon("src/ar/edu/unlu/assets/"+ controlador.topeDescarte() + ".png");
+        imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+        button.setIcon(new ImageIcon(imagenRedimensionada));
+        button.setBackground(BACKGROUND_COLOR);
+        button.setPreferredSize(buttonSize);
+        button.setBorderPainted(false);
+        if (nombreJugador.equals(controlador.getJugadorActual())) {
+            button.addActionListener(e -> {
+                controlador.robarCartaDescarte();
+                renderCardsPane(cardsPanel);
+            });
+        }
+        mazoYDescarte.add(button, gbc);
+
+        cardsPanel.add(cartasRival, BorderLayout.NORTH);
         cardsPanel.add(cartasEnMano, BorderLayout.SOUTH);
+        cardsPanel.add(mazoYDescarte, BorderLayout.CENTER);
         cardsPanel.repaint();
         cardsPanel.revalidate();
     }
 
     private void renderWaitingTurn() {
         chinchonFrame.setTitle("Chinchon - Waiting - " + nombreJugador);
+        chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         JPanel wait = jPanelMap.get("waitingturn-pane");
         wait.removeAll();
-        wait.repaint();
-        wait.revalidate();
-        wait.setBackground(Color.GREEN);
+
         wait.setLayout(new BorderLayout());
 
         JPanel cardsPanel = new JPanel();
@@ -774,6 +841,8 @@ public class VistaGrafica implements IVista {
 
         wait.add(playerOptionsPanel, BorderLayout.WEST);
         wait.add(cardsPanel, BorderLayout.CENTER);
+        wait.repaint();
+        wait.revalidate();
         cardLayout.show(cardPane, "waitingturn-pane");
     }
 
@@ -799,11 +868,33 @@ public class VistaGrafica implements IVista {
     }
 
     private void intercambiarCarta() {
+        JTextField campoX = new JTextField(5);
+        JTextField campoY = new JTextField(5);
 
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("N:"));
+        panel.add(campoX);
+        panel.add(Box.createHorizontalStrut(15)); // Espacio entre campos
+        panel.add(new JLabel("M:"));
+        panel.add(campoY);
+
+        int resultado = JOptionPane.showConfirmDialog(null, panel,
+                "Intercambiar carta;", JOptionPane.OK_CANCEL_OPTION);
+
+        if (resultado == JOptionPane.OK_OPTION) {
+            try {
+                int x = Integer.parseInt(campoX.getText().trim());
+                int y = Integer.parseInt(campoY.getText().trim());
+                controlador.intercambiarCartas(x, y, nombreJugador);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Por favor ingrese números válidos.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        iniciarTurnos();
     }
 
     private void configurarBoton(JButton boton) {
-        Dimension buttonSize = new Dimension(250, 35); // Ancho: 275, Alto: 75
+        Dimension buttonSize = new Dimension(350, 45); // Ancho: 275, Alto: 75
         boton.setFont(BTN_FONT);
         boton.setBackground(new Color(26, 57, 44));
         boton.setForeground(Color.WHITE);
@@ -834,7 +925,7 @@ public class VistaGrafica implements IVista {
     @Override
     public void startGame() {
         controlador.iniciarPartida();
-        actualizarVista();
+        iniciarTurnos();
     }
 
     @Override
@@ -843,13 +934,8 @@ public class VistaGrafica implements IVista {
     }
 
     @Override
-    public void cambiarTurno() {
-        actualizarVista();
-    }
-
-    private void actualizarVista() {
-        jugadorActual = controlador.getJugadorActual();
-        if (jugadorActual.equals(nombreJugador)) {
+    public void iniciarTurnos() {
+        if (nombreJugador.equals(controlador.getJugadorActual())) {
             renderInGame();
         } else {
             renderWaitingTurn();
@@ -869,6 +955,11 @@ public class VistaGrafica implements IVista {
     @Override
     public void finishGame() {
 
+    }
+
+    @Override
+    public void actualizarMesa() {
+        iniciarTurnos();
     }
 
     private void notificar(String msg) {

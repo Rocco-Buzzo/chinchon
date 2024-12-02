@@ -1,7 +1,6 @@
 package ar.edu.unlu.mvc.controller;
 
 import ar.edu.unlu.mvc.model.clases.Carta;
-import ar.edu.unlu.mvc.model.clases.Jugador;
 import ar.edu.unlu.mvc.model.enumerates.Eventos;
 import ar.edu.unlu.mvc.model.interfaces.IChinchon;
 import ar.edu.unlu.mvc.view.IVista;
@@ -59,6 +58,14 @@ public class Controlador implements IControladorRemoto {
     public String getJugadorActual() {
         try {
             return iChinchon.getJugadorActual().getNombre();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int sizeCartasJugadorNoActual() {
+        try {
+            return iChinchon.getJugadores().fondo().getMano().getCartas().size();
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -153,6 +160,14 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
+    public String topeDescarte() {
+        try {
+            return iChinchon.getDescarte().toString();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public <T extends IObservableRemoto> void setModeloRemoto(T t) throws RemoteException {
         this.iChinchon = (IChinchon) t;
@@ -162,11 +177,20 @@ public class Controlador implements IControladorRemoto {
     public void actualizar(IObservableRemoto iObservableRemoto, Object o) throws RemoteException {
         if (o instanceof Eventos index) {
             switch (index) {
-                case JUGADORES_MAXIMOS, PARTIDA_CARGADA -> iVista.startGame();
+                case PARTIDA_INICIADA, CAMBIO_TURNO -> iVista.iniciarTurnos();
+                case PARTIDA_CARGADA -> iVista.startGame();
                 case PARTIDA_TERMINADA -> iVista.finishGame();
-                case CAMBIO_TURNO -> iVista.cambiarTurno();
                 case RONDA_TERMINADA -> iVista.continuarPartida();
+                case CARTA_ROBADA -> iVista.actualizarMesa();
             }
+        }
+    }
+
+    public void intercambiarCartas(int x, int y, String jugador) {
+        try {
+            iChinchon.intercambiarCartas(x, y, jugador);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
         }
     }
 }

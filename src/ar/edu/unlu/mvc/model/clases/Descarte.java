@@ -22,4 +22,13 @@ public class Descarte extends Pila {
     public Carta getTope() {
         return (Carta) super.getTope();
     }
+
+    @Override
+    public String toString() {
+        if (getTope() == null) {
+            return "DESCARTE";
+        } else {
+            return getTope().toString();
+        }
+    }
 }

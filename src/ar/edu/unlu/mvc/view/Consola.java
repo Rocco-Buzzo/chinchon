@@ -24,6 +24,11 @@ public class Consola implements IVista {
     }
 
     @Override
+    public void iniciarTurnos() {
+
+    }
+
+    @Override
     public void startGame() {
 
     }
@@ -31,11 +36,6 @@ public class Consola implements IVista {
     @Override
     public void setJugador(String nombre) {
         this.nombreJugador = nombre;
-    }
-
-    @Override
-    public void cambiarTurno() {
-
     }
 
     @Override
@@ -50,6 +50,11 @@ public class Consola implements IVista {
 
     @Override
     public void finishGame() {
+
+    }
+
+    @Override
+    public void actualizarMesa() {
 
     }
 }

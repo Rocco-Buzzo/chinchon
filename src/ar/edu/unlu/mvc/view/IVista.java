@@ -7,15 +7,17 @@ public interface IVista {
 
     void openGame();
 
+    void iniciarTurnos();
+
     void startGame();
 
     void setJugador(String nombre);
-
-    void cambiarTurno();
 
     void cargarPartida();
 
     void continuarPartida();
 
     void finishGame();
+
+    void actualizarMesa();
 }

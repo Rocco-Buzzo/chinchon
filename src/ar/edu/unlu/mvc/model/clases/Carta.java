@@ -74,9 +74,6 @@ public class Carta implements Serializable {
         return this.valor == carta.valor && this.palo == carta.palo;
     }
 
-
-
-
 //  CREAR UNA NUEVA CLASE PARA MOSTRAR LA CARTA EN PANTALLA.
 
 //    public void cartaConsola(StringBuilder[] lines) {

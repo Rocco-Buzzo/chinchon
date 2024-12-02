@@ -22,7 +22,7 @@ public interface IChinchon extends Serializable, IObservableRemoto {
 
     void continuarPartida() throws RemoteException;
 
-    void intercambiarCartas(int n, int m) throws RemoteException;
+    void intercambiarCartas(int n, int m, String jugador) throws RemoteException;
 
     void agregarJugador(String name) throws RemoteException;
 

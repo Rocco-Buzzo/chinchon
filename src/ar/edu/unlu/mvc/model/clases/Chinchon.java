@@ -38,6 +38,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             repartir();
             descarte.apilar(mazo.sacar());
             estadoPartida = EstadoPartida.JUGANDO;
+            notificarObservadores(Eventos.PARTIDA_INICIADA);
         }
     }
 
@@ -137,8 +138,8 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     @Override
-    public void intercambiarCartas(int n, int m) {
-        jugadorActual.getMano().intercambiarCartas(n, m);
+    public void intercambiarCartas(int n, int m, String jugador) throws RemoteException {
+        getJugador(jugador).getMano().intercambiarCartas(n, m);
     }
 
     /**
@@ -167,7 +168,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             } else if (this.jugadores.size() == 1 && !jugadores.frente().getNombre().equals(name)) {
                 Jugador jugador = new Jugador(name);
                 jugadores.encolar(jugador);
-                notificarObservadores(Eventos.JUGADORES_MAXIMOS);
             } else {
                 notificarObservadores(Eventos.MISMO_NOMBRE);
             }
@@ -221,6 +221,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         girarMazo();
         if (jugadorActual.getMano().getCartas().size() == 7) {
             jugadorActual.agregarCarta(mazo.sacar());
+            notificarObservadores(Eventos.CARTA_ROBADA);
         }
     }
 
@@ -268,6 +269,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         if (jugadorActual.getMano().getCartas().size() == 7) {
             if (descarte.getTope() != null) {
                 jugadorActual.agregarCarta(descarte.desapilar());
+                notificarObservadores(Eventos.CARTA_ROBADA);
             }
         }
     }
