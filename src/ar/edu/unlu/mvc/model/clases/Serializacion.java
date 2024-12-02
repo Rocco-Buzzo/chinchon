@@ -10,9 +10,9 @@ import java.util.*;
 
 public class Serializacion {
     // Ruta del archivo donde se guardará el top 5 de jugadores
-    private static final String TOP_FILE_PATH = System.getProperty("user.dir") + "/chinchon-game/src/ar/edu/unlu/top/top.dat";
+    private static final String TOP_FILE_PATH = "src/ar/edu/unlu/top/top.dat";
     // Ruta del archivo donde se guardarán las partidas
-    private static final String GAMES_FILE_PATH = System.getProperty("user.dir") + "/src/ar/edu/unlu/partidas/";
+    private static final String GAMES_FILE_PATH = "src/ar/edu/unlu/partidas/";
 
     /**
      * Funcion que permite guardar las partidas.
@@ -21,8 +21,6 @@ public class Serializacion {
      */
     public static void guardarPartida(IChinchon partida, String nombreArchivo, String playerOneName, String playerTwoName) {
         String rutaArchivo = GAMES_FILE_PATH + nombreArchivo + ".dat";
-        File archivo = new File(rutaArchivo);
-
 //        if (archivo.exists()) {
 //            System.out.println(" Ya existe una partida con ese nombre.");
 //            System.out.println(" ¿Desea sobrescribir el archivo? (s/n)");
@@ -96,8 +94,8 @@ public class Serializacion {
 
                         // Obtiene los nombres de los jugadores de la partida
                         try {
-                            String playerOneName = partida.getJugadores().getFirst().getNombre();
-                            String playerTwoName = partida.getJugadores().getLast().getNombre();
+                            String playerOneName = partida.getJugadores().frente().getNombre();
+                            String playerTwoName = partida.getJugadores().fondo().getNombre();
 
                             String partidaInfo = String.format("%s : %s (Jugadores: %s vs %s)",
                                     horaGuardado.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")),

@@ -97,6 +97,9 @@ public class Jugador implements Serializable {
         return acum;
     }
 
+    public boolean equals(Jugador jugador) {
+        return this.nombre.equals(jugador.getNombre());
+    }
     public void vaciarCartas() {
         this.getMano().vaciar();
     }

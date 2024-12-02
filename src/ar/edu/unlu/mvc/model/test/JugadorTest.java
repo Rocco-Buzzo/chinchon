@@ -27,17 +27,7 @@ public class JugadorTest {
         assertEquals("Jugador 1", player.getNombre());
         assertEquals(0, player.getPuntaje());
         assertNotNull(player.getMano());
-        assertFalse(player.isTurno());
         assertEquals(0, player.getVictorias());
-    }
-
-    @Test
-    public void testSetTurno() {
-        Jugador player = new Jugador("Jugador 1");
-        player.setTurno(true);
-        assertTrue(player.isTurno());
-        player.setTurno(false);
-        assertFalse(player.isTurno());
     }
 
     @Test

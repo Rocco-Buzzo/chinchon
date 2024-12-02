@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class Cola<T> implements Serializable{
 
-    private static class Nodo<T> {
+    private static class Nodo<T> implements Serializable {
         private T dato;
         private Nodo<T> siguiente;
 
@@ -16,12 +16,12 @@ public class Cola<T> implements Serializable{
 
     private Nodo<T> frente;
     private Nodo<T> fondo;
-    private int tamaño;
+    private int size;
 
     public Cola() {
         frente = null;
         fondo = null;
-        tamaño = 0;
+        size = 0;
     }
 
     public boolean estaVacia() {
@@ -37,7 +37,7 @@ public class Cola<T> implements Serializable{
             fondo.siguiente = nuevoNodo;
             fondo = nuevoNodo;
         }
-        tamaño++;
+        size++;
     }
 
     public T desencolar() {
@@ -49,8 +49,14 @@ public class Cola<T> implements Serializable{
         if (frente == null) {
             fondo = null;
         }
-        tamaño--;
+        size--;
         return dato;
+    }
+
+    public void moverAlFondo() {
+        if (!estaVacia() && size > 1) {
+            encolar(desencolar());
+        }
     }
 
     public T frente() {
@@ -68,13 +74,13 @@ public class Cola<T> implements Serializable{
     }
 
     public int size() {
-        return tamaño;
+        return size;
     }
 
     public void vaciar() {
         frente = null;
         fondo = null;
-        tamaño = 0;
+        size = 0;
     }
 
     @Override

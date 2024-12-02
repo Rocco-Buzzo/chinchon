@@ -35,7 +35,7 @@ public class JuegoTest {
 
     @Test
     public void testEstadoDePartida() {
-        Chinchon juego = new Chinchon();
+        IChinchon juego = new Chinchon();
         try {
             juego.agregarJugador("Rocco");
             juego.agregarJugador("Mariano");
@@ -49,7 +49,7 @@ public class JuegoTest {
 
     @Test
     public void testCambioDeJugador() {
-        Chinchon juego = new Chinchon();
+        IChinchon juego = new Chinchon();
         try {
             juego.agregarJugador("Rocco");
             juego.agregarJugador("Mariano");
@@ -58,8 +58,6 @@ public class JuegoTest {
             for (int i = 0; i < 10; i++) {
                 juego.cambiarJugador();
             }
-
-            Assert.assertTrue(juego.getJugadorActual());
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -67,7 +65,7 @@ public class JuegoTest {
 
     @Test
     public void testTirarCartaJugador() {
-        Chinchon juego = new Chinchon();
+        IChinchon juego = new Chinchon();
         try {
             juego.agregarJugador("Rocco");
             juego.agregarJugador("Mariano");
@@ -82,15 +80,15 @@ public class JuegoTest {
 
     @Test
     public void testTirarCartaJugadorDos() {
-        Chinchon juego = new Chinchon();
+        IChinchon juego = new Chinchon();
         try {
             juego.agregarJugador("Rocco");
             juego.agregarJugador("Mariano");
             juego.establecerValores(false, 40, 50);
             juego.iniciarPartida();
-            juego.robarCartaDescarte();
+            juego.robarCartaMazo();
             juego.tirarCarta(1);
-            Assert.assertEquals(7, juego.getJugadorActual().getMano().getCartas().size());
+            Assert.assertEquals(2, juego.getDescarte().getSize());
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -98,7 +96,7 @@ public class JuegoTest {
 
     @Test
     public void testTirarCartaJugador1() {
-        Chinchon juego = new Chinchon();
+        IChinchon juego = new Chinchon();
         try {
             juego.agregarJugador("Rocco");
             juego.agregarJugador("Mariano");
@@ -115,7 +113,7 @@ public class JuegoTest {
 
     @Test
     public void testGetCartaPos() {
-        Chinchon juego = new Chinchon();
+        IChinchon juego = new Chinchon();
         try {
             juego.agregarJugador("Rocco");
             juego.agregarJugador("Jusepe");
@@ -144,7 +142,7 @@ public class JuegoTest {
 
     @Test
     public void testTerminarRonda() {
-        Chinchon juego = new Chinchon();
+        IChinchon juego = new Chinchon();
         try {
             juego.agregarJugador("Rocco");
             juego.agregarJugador("Jusepe");
@@ -181,19 +179,6 @@ public class JuegoTest {
             throw new RuntimeException(e);
         }
 
-    }
-
-    @Test
-    public void testCargarTopFive() {
-        Top top = Serializacion.cargarTop();
-
-        System.out.println("Top 5 de jugadores:");
-        System.out.printf("%-10s %-20s %s\n", "Puesto", "Nombre", "Victorias");
-
-        for (int i = 0; i < Math.min(5, top.getTop().size()); i++) {
-            Jugador jugador = top.getTop().get(i);
-            System.out.printf("%-10d %-20s %d\n", (i + 1), jugador.getNombre(), jugador.getVictorias());
-        }
     }
 
     @Test

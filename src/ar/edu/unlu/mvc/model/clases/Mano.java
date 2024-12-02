@@ -41,23 +41,6 @@ public class Mano implements Serializable {
     }
 
     /**
-     * Descarta una carta de la mano, dada la posición de la carta en la mano.
-     * La carta seleccionada se coloca en la posición de carta extra, y luego
-     * se devuelve.
-     *
-     * @param n La posición en la mano (1-8)
-     * @return La carta a descartar
-     */
-//    public Carta tirarCarta(int n) {
-//        n--;
-//        if (esIndice(n)) {
-//
-//        } else {
-//            return null;
-//        }
-//    }
-
-    /**
      * Devuelve la carta dada su posición en la mano.
      *
      * @param n Índice de la carta.
@@ -207,79 +190,45 @@ public class Mano implements Serializable {
         if (esChinchon()) {
             return true;
         } else {
-            if (unoDeTresYOtroDeCuatro()) {
+            if (verificarGrupos(3,4, false)) {
                 return true;
-            } else if (unoDeCuatroYOtroDeTres()) {
+            } else if (verificarGrupos(4,3, false)) {
                 return true;
-            } else return dosDeTres();
+            } else return verificarGrupos(3,3, true);
         }
     }
 
-    private boolean unoDeTresYOtroDeCuatro() {
+    private boolean verificarGrupos(int tamGrupo1, int tamGrupo2, boolean verificarCartaExtra) {
         // Obtener las posiciones de las cartas en la mano del jugador
         ArrayList<Integer> posiciones = new ArrayList<>();
         for (int i = 0; i < cartas.size(); i++) {
             posiciones.add(i);
         }
 
-        // Verificar si hay dos grupos ligados (uno de tres y otro de cuatro)
-        for (int i = 0; i <= posiciones.size() - 3; i++) {
-            for (int j = i + 3; j <= posiciones.size() - 4; j++) {
-                int[] grupo1 = {posiciones.get(i), posiciones.get(i + 1), posiciones.get(i + 2)};
-                int[] grupo2 = {posiciones.get(j), posiciones.get(j + 1), posiciones.get(j + 2), posiciones.get(j + 3)};
-                if ((iguales(grupo1) && iguales(grupo2)) ||
-                        (escalera(grupo1) && iguales(grupo2)) ||
-                        (iguales(grupo1) && escalera(grupo2)) ||
-                        (escalera(grupo1) && escalera(grupo2))) {
-                    return true;
+        // Verificar los grupos
+        for (int i = 0; i <= posiciones.size() - tamGrupo1; i++) {
+            for (int j = i + tamGrupo1; j <= posiciones.size() - tamGrupo2; j++) {
+                int[] grupo1 = new int[tamGrupo1];
+                int[] grupo2 = new int[tamGrupo2];
+
+                for (int k = 0; k < tamGrupo1; k++) {
+                    grupo1[k] = posiciones.get(i + k);
                 }
-            }
-        }
-        return false;
-    }
 
-    private boolean unoDeCuatroYOtroDeTres() {
-        // Obtener las posiciones de las cartas en la mano del jugador
-        ArrayList<Integer> posiciones = new ArrayList<>();
-        for (int i = 0; i < cartas.size(); i++) {
-            posiciones.add(i);
-        }
-
-        // Verificar si hay dos grupos, uno de cuatro cartas y otro de tres
-        for (int i = 0; i <= posiciones.size() - 4; i++) {
-            for (int j = i + 4; j <= posiciones.size() - 3; j++) {
-                int[] grupo1 = {posiciones.get(i), posiciones.get(i + 1), posiciones.get(i + 2), posiciones.get(i + 3)};
-                int[] grupo2 = {posiciones.get(j), posiciones.get(j + 1), posiciones.get(j + 2)};
-                if ((iguales(grupo1) && iguales(grupo2)) ||
-                        (escalera(grupo1) && iguales(grupo2)) ||
-                        (iguales(grupo1) && escalera(grupo2)) ||
-                        (escalera(grupo1) && escalera(grupo2))) {
-                    return true;
+                for (int k = 0; k < tamGrupo2; k++) {
+                    grupo2[k] = posiciones.get(j + k);
                 }
-            }
-        }
 
-        return false;
-    }
-
-    private boolean dosDeTres() {
-        // Obtener las posiciones de las cartas en la mano del jugador
-        ArrayList<Integer> posiciones = new ArrayList<>();
-        for (int i = 0; i < cartas.size(); i++) {
-            posiciones.add(i);
-        }
-
-        // Verificar si hay dos grupos de tres cartas y una séptima carta con valor inferior a cinco
-        for (int i = 0; i <= posiciones.size() - 3; i++) {
-            for (int j = i + 3; j <= posiciones.size() - 3; j++) {
-                int[] grupo1 = {posiciones.get(i), posiciones.get(i + 1), posiciones.get(i + 2)};
-                int[] grupo2 = {posiciones.get(j), posiciones.get(j + 1), posiciones.get(j + 2)};
                 if ((iguales(grupo1) && iguales(grupo2)) ||
                         (escalera(grupo1) && iguales(grupo2)) ||
                         (iguales(grupo1) && escalera(grupo2)) ||
                         (escalera(grupo1) && escalera(grupo2))) {
-                    // Verificar la séptima carta
-                    if (posiciones.size() > j + 3 && cartas.get(posiciones.get(j + 3)).getValor() <= 5) {
+
+                    if (verificarCartaExtra) {
+                        if (posiciones.size() > j + tamGrupo2 && cartas.get(posiciones.get(j + tamGrupo2)).getValor() <= 5) {
+                            return true;
+                        }
+                    } else {
                         return true;
                     }
                 }
@@ -296,43 +245,26 @@ public class Mano implements Serializable {
      * @return Premio del Jugador
      */
     public int calcularPuntajeGanador() {
-        if (esChinchon() && cantidadComodines() == 2) {
-            return -25;
-        } else if (esChinchon() && cantidadComodines() == 1) {
-            return -50;
-        } else if (esChinchon()) {
-            return -100;
-        } else {
-            if (unoDeCuatroYOtroDeTres() || unoDeTresYOtroDeCuatro()) {
-                return -10;
-            } else {
-                // Obtener las posiciones de las cartas en la mano del jugador
-                ArrayList<Integer> posiciones = new ArrayList<>();
-                for (int i = 0; i < cartas.size(); i++) {
-                    posiciones.add(i);
-                }
+        if (esChinchon()) {
+            return switch (cantidadComodines()) {
+                case 2 -> -25;
+                case 1 -> -50;
+                default -> -100;
+            };
+        }
 
-                // Verificar si hay dos grupos de tres cartas y una séptima carta con valor inferior a cinco
-                for (int i = 0; i <= posiciones.size() - 3; i++) {
-                    for (int j = i + 3; j <= posiciones.size() - 3; j++) {
-                        int[] grupo1 = {posiciones.get(i), posiciones.get(i + 1), posiciones.get(i + 2)};
-                        int[] grupo2 = {posiciones.get(j), posiciones.get(j + 1), posiciones.get(j + 2)};
-                        if ((iguales(grupo1) && iguales(grupo2)) ||
-                                (escalera(grupo1) && iguales(grupo2)) ||
-                                (iguales(grupo1) && escalera(grupo2)) ||
-                                (escalera(grupo1) && escalera(grupo2))) {
-                            // Verificar la séptima carta
-                            if (posiciones.size() > j + 3 && cartas.get(posiciones.get(j + 3)).getValor() <= 5) {
-                                return cartas.get(posiciones.get(j + 3)).getValor();
-                            }
-                        } else {
-                            return 0;
-                        }
-                    }
-                }
-                return 0;
+        if (verificarGrupos(3, 4, false) || verificarGrupos(4, 3, false)) {
+            return -10;
+        }
+
+        // Verificar dos grupos de tres cartas y una séptima carta con valor <= 5
+        if (verificarGrupos(3, 3, true)) {
+            if (cartas.getLast().getValor() <= 5) {
+                return cartas.getLast().getValor();
             }
         }
+
+        return 0;
     }
 
     /**

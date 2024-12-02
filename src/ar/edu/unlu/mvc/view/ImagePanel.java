@@ -2,18 +2,18 @@ package ar.edu.unlu.mvc.view;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import javax.imageio.ImageIO;
 
 public class ImagePanel extends JPanel {
     private Image image;
 
-    // Constructor para cargar la imagen desde un archivo
-    public ImagePanel(String imagePath) {
+    // Constructor para cargar la imagen desde un recurso URL
+    public ImagePanel(URL imagePath) {
         try {
-            // Cargar la imagen desde el archivo
-            image = ImageIO.read(new File(imagePath));
+            // Cargar la imagen desde el URL directamente
+            image = ImageIO.read(imagePath);
         } catch (IOException e) {
             e.printStackTrace();
         }

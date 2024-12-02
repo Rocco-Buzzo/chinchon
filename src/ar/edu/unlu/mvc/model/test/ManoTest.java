@@ -230,8 +230,8 @@ public class ManoTest {
         mano.agregarCarta(new Carta(12, Palo.ORO));
         mano.agregarCarta(new Carta(12, Palo.BASTO));
         mano.agregarCarta(new Carta(12, Palo.COPA));
-        mano.agregarCarta(new Carta(2, Palo.ESPADA));
-        assertTrue(mano.puedeCerrar());
+        mano.agregarCarta(new Carta(9, Palo.ESPADA));
+        assertFalse(mano.puedeCerrar());
 
     }
 

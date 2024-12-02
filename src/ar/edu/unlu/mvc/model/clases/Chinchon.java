@@ -359,11 +359,13 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      * Funcion auxiliar para repartir cartas.
      */
     private void repartir() {
-        for (int i = 0; i < 7; i++) {
-            Jugador actual = jugadores.frente();
-            while (actual != null) {
-                actual.getMano().agregarCarta(mazo.sacar());
-                actual = jugadores.fondo();
+        for (int i = 0; i < 7; i++) { // Repartir 7 cartas a cada jugador
+            Jugador actual; // Obtener el primer jugador
+
+            for (int j = 0; j < jugadores.size(); j++) {
+                actual = jugadores.frente(); // Iterar sobre todos los jugadores
+                actual.getMano().agregarCarta(mazo.sacar()); // Dar carta al jugador actual
+                jugadores.moverAlFondo(); // Pasar al siguiente jugador en la cola
             }
         }
     }

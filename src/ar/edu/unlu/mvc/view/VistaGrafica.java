@@ -21,10 +21,16 @@ public class VistaGrafica implements IVista {
 
     private final JFrame chinchonFrame = new JFrame("Chinchon - Main Menu");
     private static final Color BACKGROUND_COLOR = new Color(55, 101, 73);
-    private static final int FRAME_WIDTH = 1024;
-    private static final int FRAME_HEIGHT = 768;
     private static final Font BTN_FONT = new Font("Montserrat", Font.BOLD, 16);
-    private static final String IMAGES_PATH = System.getProperty("user.dir") + "/chinchon-game/src/ar/edu/unlu/assets/";
+    private static final String IMAGES_PATH = "./ar/edu/unlu/assets/";
+
+    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    private final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(chinchonFrame.getGraphicsConfiguration());
+
+    // Ajustar el tamaño para que no cubra la barra de tareas
+    private final int FRAME_WIDTH = screenSize.width - screenInsets.left - screenInsets.right;
+    private final int FRAME_HEIGHT = screenSize.height - screenInsets.top - screenInsets.bottom;
+
 
     private String jugadorActual;
 
@@ -40,11 +46,12 @@ public class VistaGrafica implements IVista {
 
     private void initMenu() {
         chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         chinchonFrame.setResizable(false);
         chinchonFrame.setLocationRelativeTo(null);
         chinchonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         chinchonFrame.setBackground(BACKGROUND_COLOR);
-        chinchonFrame.setIconImage(new ImageIcon("chinchon-game/src/ar/edu/unlu/assets/ICONO.png").getImage());
+        chinchonFrame.setIconImage(new ImageIcon("./ar/edu/unlu/assets/ICONO.png").getImage());
 
         cardLayout = new CardLayout();
         chinchonFrame.setLayout(cardLayout);
@@ -89,6 +96,7 @@ public class VistaGrafica implements IVista {
     private void renderMenu() {
         chinchonFrame.setTitle("Chinchón");
         chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         chinchonFrame.setLocationRelativeTo(null);
         JPanel menu = jPanelMap.get("menu-pane");
         menu.removeAll();
@@ -98,8 +106,8 @@ public class VistaGrafica implements IVista {
         menu.setBackground(BACKGROUND_COLOR);
 
         // Panel del titulo del juego
-        JPanel imagePane = new ImagePanel("chinchon-game/src/ar/edu/unlu/assets/titulo.png");
-        imagePane.setPreferredSize(new Dimension(156, 156));
+        JPanel imagePane = new ImagePanel(getClass().getClassLoader().getResource(IMAGES_PATH + "titulo.png"));
+        imagePane.setPreferredSize(new Dimension(156, 192));
         imagePane.setBackground(BACKGROUND_COLOR);
 
         // Panel para los botones
@@ -125,14 +133,13 @@ public class VistaGrafica implements IVista {
             chinchonFrame.setTitle("Configuración de Partida");
         });
 
-        // Boton para unirse a partida
         JButton btnJoin = new JButton();
         btnJoin.setFont(new Font("Montserrat", Font.BOLD, 24));
         btnJoin.setText("Unirse a Partida");
         btnJoin.setPreferredSize(buttonSize);
         btnJoin.setBackground(new Color(26, 57, 44, 255));
         btnJoin.setForeground(Color.WHITE);
-        btnJoin.addActionListener(e -> {
+        btnJoin.addActionListener(_ -> {
             controlador.agregarJugador(nombreJugador);
             if (controlador.getJugadoresSize() == 1) {
                 esperandoJugadores();
@@ -146,7 +153,7 @@ public class VistaGrafica implements IVista {
         btnLoad.setPreferredSize(buttonSize);
         btnLoad.setBackground(new Color(26, 57, 44, 255));
         btnLoad.setForeground(Color.WHITE);
-        btnLoad.addActionListener(e -> renderLoadGame());
+        btnLoad.addActionListener(_ -> renderLoadGame());
 
         // Boton para ver las reglas
         JButton btnRules = new JButton();
@@ -194,7 +201,8 @@ public class VistaGrafica implements IVista {
 
     private void renderLoadGame() {
         chinchonFrame.setTitle("Cargar una Partida");
-        chinchonFrame.setSize(580, 278);
+        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         chinchonFrame.setLocationRelativeTo(null);
         JPanel load = jPanelMap.get("load-pane");
         load.removeAll();
@@ -284,7 +292,8 @@ public class VistaGrafica implements IVista {
 
     private void renderSettings() {
         chinchonFrame.setTitle("Reglas del Chinchón");
-        chinchonFrame.setSize(500, 800);
+        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         chinchonFrame.setLocationRelativeTo(null);
 
         JPanel settings = jPanelMap.get("settings-pane");
@@ -294,14 +303,15 @@ public class VistaGrafica implements IVista {
         settings.setLayout(new BorderLayout());
         settings.setBackground(BACKGROUND_COLOR);
 
-        JPanel imagePane = new ImagePanel("chinchon-game/src/ar/edu/unlu/assets/titulo.png");
-        imagePane.setPreferredSize(new Dimension(72, 72));
+        JPanel imagePane = new ImagePanel(getClass().getClassLoader().getResource(IMAGES_PATH + "titulo.png"));
+        imagePane.setPreferredSize(new Dimension(156, 192));
         imagePane.setBackground(BACKGROUND_COLOR);
 
         JPanel settingsPane = new JPanel(new GridBagLayout());
         settingsPane.setBackground(BACKGROUND_COLOR);
 
-        chinchonFrame.setSize(FRAME_HEIGHT / 2, 576);
+        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         chinchonFrame.setLocationRelativeTo(null);
         chinchonFrame.setTitle("Chinchon - Settings");
 
@@ -385,6 +395,7 @@ public class VistaGrafica implements IVista {
         btnBack.addActionListener(e -> {
             cardLayout.show(cardPane, "menu-pane");
             chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+            chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
             chinchonFrame.setLocationRelativeTo(null);
         });
 
@@ -418,7 +429,8 @@ public class VistaGrafica implements IVista {
     // Funciona correctamente.
     private void renderRules() {
         chinchonFrame.setTitle("Reglas del Chinchón");
-        chinchonFrame.setSize(500, 800);
+        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         chinchonFrame.setLocationRelativeTo(null);
         JPanel rules = jPanelMap.get("rules-pane");
         rules.removeAll();
@@ -520,6 +532,7 @@ public class VistaGrafica implements IVista {
         btnBack.addActionListener(e -> {
             cardLayout.show(cardPane, "menu-pane");
             chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+            chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
             chinchonFrame.setLocationRelativeTo(null);
         });
 
@@ -533,8 +546,8 @@ public class VistaGrafica implements IVista {
     private void renderInGame() {
         chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         chinchonFrame.setTitle("Chinchon - In Game - " + nombreJugador);
-        chinchonFrame.setSize(1280, 560);
-
+        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         JPanel inGame = jPanelMap.get("ingame-pane");
         inGame.removeAll();
         inGame.repaint();
@@ -679,8 +692,8 @@ public class VistaGrafica implements IVista {
 
     private void renderWaitingTurn() {
         chinchonFrame.setTitle("Chinchon - Waiting - " + nombreJugador);
-        chinchonFrame.setSize(1280, 560);
-
+        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         JPanel wait = jPanelMap.get("waitingturn-pane");
         wait.removeAll();
         wait.repaint();
@@ -766,7 +779,8 @@ public class VistaGrafica implements IVista {
 
     private void esperandoJugadores() {
         chinchonFrame.setTitle("Esperando Jugadores");
-        chinchonFrame.setSize(1280, 560);
+        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         JPanel esperando = jPanelMap.get("esperando-pane");
         esperando.removeAll();
 
