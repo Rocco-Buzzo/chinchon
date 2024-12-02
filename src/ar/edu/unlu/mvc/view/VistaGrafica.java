@@ -51,7 +51,7 @@ public class VistaGrafica implements IVista {
         chinchonFrame.setLocationRelativeTo(null);
         chinchonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         chinchonFrame.setBackground(BACKGROUND_COLOR);
-        chinchonFrame.setIconImage(new ImageIcon("./ar/edu/unlu/assets/ICONO.png").getImage());
+        chinchonFrame.setIconImage(new ImageIcon("src/ar/edu/unlu/assets/ICONO.png").getImage());
 
         cardLayout = new CardLayout();
         chinchonFrame.setLayout(cardLayout);
@@ -107,7 +107,7 @@ public class VistaGrafica implements IVista {
 
         // Panel del titulo del juego
         JPanel imagePane = new ImagePanel(getClass().getClassLoader().getResource(IMAGES_PATH + "titulo.png"));
-        imagePane.setPreferredSize(new Dimension(156, 192));
+        imagePane.setPreferredSize(new Dimension(128, 192));
         imagePane.setBackground(BACKGROUND_COLOR);
 
         // Panel para los botones
@@ -304,7 +304,7 @@ public class VistaGrafica implements IVista {
         settings.setBackground(BACKGROUND_COLOR);
 
         JPanel imagePane = new ImagePanel(getClass().getClassLoader().getResource(IMAGES_PATH + "titulo.png"));
-        imagePane.setPreferredSize(new Dimension(156, 192));
+        imagePane.setPreferredSize(new Dimension(128, 192));
         imagePane.setBackground(BACKGROUND_COLOR);
 
         JPanel settingsPane = new JPanel(new GridBagLayout());

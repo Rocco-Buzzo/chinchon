@@ -91,7 +91,7 @@ public class ManoTest {
     public void testOrdenarCartaPalo() {
         Mano mano = new Mano();
         Mazo mazo = new Mazo(true, 48);
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 7; i++) {
             mano.agregarCarta(mazo.sacar());
         }
         System.out.println(mano.getCartas());
@@ -103,7 +103,7 @@ public class ManoTest {
     public void testOrdenarCartaValor() {
         Mano mano = new Mano();
         Mazo mazo = new Mazo(true, 48);
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 7; i++) {
             mano.agregarCarta(mazo.sacar());
         }
         System.out.println(mano.getCartas());

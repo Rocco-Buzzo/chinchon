@@ -21,19 +21,6 @@ public class Serializacion {
      */
     public static void guardarPartida(IChinchon partida, String nombreArchivo, String playerOneName, String playerTwoName) {
         String rutaArchivo = GAMES_FILE_PATH + nombreArchivo + ".dat";
-//        if (archivo.exists()) {
-//            System.out.println(" Ya existe una partida con ese nombre.");
-//            System.out.println(" ¿Desea sobrescribir el archivo? (s/n)");
-//
-//            Scanner scanner = new Scanner(System.in);
-//            String respuesta = scanner.nextLine().trim().toLowerCase();
-//
-//            if (!respuesta.equals("s")) {
-//                System.out.println(" Operación cancelada.");
-//                return;
-//            }
-//        }
-
         try {
             FileOutputStream archivoSalida = new FileOutputStream(rutaArchivo);
             ObjectOutputStream salida = new ObjectOutputStream(archivoSalida);

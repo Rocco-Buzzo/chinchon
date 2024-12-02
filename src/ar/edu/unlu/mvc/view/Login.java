@@ -24,7 +24,7 @@ public class Login extends JDialog {
         setSize(320, 160);
         setLocationRelativeTo(null);
         setResizable(false);
-        setIconImage(new ImageIcon("chinchon-game/src/ar/edu/unlu/assets/ICONO.png").getImage());
+        setIconImage(new ImageIcon("src/ar/edu/unlu/assets/ICONO.png").getImage());
         setTitle("Chinchon - Login");
         setLayout(new BorderLayout());
         getRootPane().setDefaultButton(btnAccept);

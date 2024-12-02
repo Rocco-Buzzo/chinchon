@@ -338,6 +338,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             // Aplica tu función aquí
             if (actual.getNombre().equals(jugadorName)) {
                 actual.getMano().ordenarCartaValor();
+                return;
             }
             actual = jugadores.fondo();
         }
@@ -350,6 +351,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             // Aplica tu función aquí
             if (actual.getNombre().equals(jugadorName)) {
                 actual.getMano().ordenarCartaPalo();
+                return;
             }
             actual = jugadores.fondo();
         }
