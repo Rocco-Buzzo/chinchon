@@ -1,8 +1,11 @@
 package ar.edu.unlu.mvc.model.clases;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class Jugador implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 5L;
     private final String nombre;
     private final Mano mano;
     private int puntaje;

@@ -1,11 +1,14 @@
 package ar.edu.unlu.utilities;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class Cola<T> implements Serializable{
+    @Serial
+    private static final long serialVersionUID = 8L;
 
     private static class Nodo<T> implements Serializable {
-        private T dato;
+        private final T dato;
         private Nodo<T> siguiente;
 
         public Nodo(T dato) {

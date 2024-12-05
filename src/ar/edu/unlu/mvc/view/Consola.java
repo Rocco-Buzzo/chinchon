@@ -34,14 +34,20 @@ public class Consola implements IVista {
     }
 
     @Override
+    public void loadGame() {
+
+    }
+
+    @Override
+    public void cerrarRonda() {
+
+    }
+
+    @Override
     public void setJugador(String nombre) {
         this.nombreJugador = nombre;
     }
 
-    @Override
-    public void cargarPartida() {
-
-    }
 
     @Override
     public void continuarPartida() {
@@ -49,7 +55,7 @@ public class Consola implements IVista {
     }
 
     @Override
-    public void finishGame() {
+    public void finishGame(boolean guardado) {
 
     }
 
@@ -57,4 +63,5 @@ public class Consola implements IVista {
     public void actualizarMesa() {
 
     }
+
 }

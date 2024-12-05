@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 
 public class Pila implements Serializable {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 9L;
     private Nodo tope;
     private int size;
 

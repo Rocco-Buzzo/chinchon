@@ -185,11 +185,11 @@ public class JuegoTest {
     public void testCargarPartida() throws RemoteException {
         IChinchon iChinchon = new Chinchon();
         iChinchon.agregarJugador("Rocco");
-        iChinchon.agregarJugador("Enzo");
+        iChinchon.agregarJugador("Jusepe");
         iChinchon.establecerValores(false, 40, 50);
         iChinchon.iniciarPartida();
-        iChinchon.guardarPartida("wor king");
-        IChinchon chinchon = Serializacion.cargarPartida("wor king");
+        iChinchon.guardarPartida("partidaUno", true);
+        IChinchon chinchon = Serializacion.cargarPartida("partidaUno");
         ArrayList<String> games = Serializacion.listarPartidas();
         for (String partida : games) {
             System.out.println(partida);

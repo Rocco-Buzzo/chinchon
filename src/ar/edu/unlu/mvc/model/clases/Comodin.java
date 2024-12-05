@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 public class Comodin extends Carta implements Serializable {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3L;
 
     public Comodin() {
         super(25, Palo.JOKER);

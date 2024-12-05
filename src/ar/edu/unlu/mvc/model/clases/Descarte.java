@@ -2,7 +2,11 @@ package ar.edu.unlu.mvc.model.clases;
 
 import ar.edu.unlu.utilities.Pila;
 
+import java.io.Serial;
+
 public class Descarte extends Pila {
+    @Serial
+    private static final long serialVersionUID = 4L;
     public Descarte() {
         super();
     }

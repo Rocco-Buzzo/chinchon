@@ -14,12 +14,12 @@ import java.util.Random;
 
 public class Chinchon extends ObservableRemoto implements IChinchon {
     @Serial
-    private static final long serialVersionUID = -8172177002048510710L;
+    private static final long serialVersionUID = 2L;
     private Mazo mazo;
     private Descarte descarte = new Descarte();
     private Cola<Jugador> jugadores = new Cola<>();
     private Jugador jugadorActual;
-    private Jugador ganador;
+    private Jugador ganador = new Jugador("");
     private Top top = new Top();
     private int puntosMaximos = 0;
     private int cantidadRondas = 1;
@@ -68,7 +68,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             estadoPartida = iJuego.getEstadoDePartida();
             puntosMaximos = iJuego.getPuntosMaximos();
             contieneComodin = iJuego.getMazo().isContieneComodin();
-            top = new Top();
+            top = getTop();
             estadoPartida = EstadoPartida.JUGANDO;
             notificarObservadores(Eventos.PARTIDA_CARGADA);
             return true;
@@ -83,9 +83,14 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      * @param nombreArchivo - Nombre de la partida.
      */
     @Override
-    public void guardarPartida(String nombreArchivo) throws RemoteException {
-        Serializacion.guardarPartida(this, nombreArchivo, this.jugadores.frente().getNombre(), this.jugadores.fondo().getNombre());
-        notificarObservadores(Eventos.PARTIDA_GUARDADA);
+    public void guardarPartida(String nombreArchivo, boolean guardar) throws RemoteException {
+        if (guardar) {
+            Serializacion.guardarPartida(this, nombreArchivo);
+            notificarObservadores(Eventos.PARTIDA_GUARDADA);
+        } else {
+            reset();
+            notificarObservadores(Eventos.PARTIDA_CANCELADA);
+        }
     }
 
     /**
@@ -101,6 +106,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             if (puedeTerminar()) {
                 terminarPartida();
                 notificarObservadores(Eventos.PARTIDA_TERMINADA);
+                reset();
             } else {
                 estadoPartida = EstadoPartida.JUGANDO;
                 continuarPartida();
@@ -136,6 +142,21 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             jugadores.encolar(jAux);
         }
     }
+
+    private void reset() throws RemoteException {
+        mazo = null;
+        descarte = new Descarte();
+        jugadores = new Cola<>();
+        jugadorActual = null;
+        ganador = new Jugador("");
+        top = new Top();
+        puntosMaximos = 0;
+        cantidadRondas = 1;
+        contieneComodin = false;
+        cantCartas = 0;
+        estadoPartida = EstadoPartida.ESTABLECIENDO;
+    }
+
 
     @Override
     public void intercambiarCartas(int n, int m, String jugador) throws RemoteException {
@@ -276,6 +297,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
 
     /**
      * Devuelve la cantidad de rondas.
+     *
      * @return Cantidad de rondas.
      */
     @Override

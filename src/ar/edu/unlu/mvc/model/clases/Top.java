@@ -1,10 +1,13 @@
 package ar.edu.unlu.mvc.model.clases;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 
 public class Top implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 7L;
     private ArrayList<Jugador> top;
     /**
      * Constructor de la clase Top.

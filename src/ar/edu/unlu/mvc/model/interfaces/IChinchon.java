@@ -16,7 +16,7 @@ public interface IChinchon extends Serializable, IObservableRemoto {
 
     boolean cargarPartida(String nombreArchivo) throws RemoteException;
 
-    void guardarPartida(String nombreArchivo) throws RemoteException;
+    void guardarPartida(String nombreArchivo, boolean guardar) throws RemoteException;
 
     void cerrarRonda() throws RemoteException;
 

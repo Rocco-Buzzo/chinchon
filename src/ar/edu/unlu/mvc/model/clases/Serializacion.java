@@ -19,7 +19,7 @@ public class Serializacion {
      * @param partida Partida a guardar.
      * @param nombreArchivo Archivo de la partida.
      */
-    public static void guardarPartida(IChinchon partida, String nombreArchivo, String playerOneName, String playerTwoName) {
+    public static void guardarPartida(IChinchon partida, String nombreArchivo) {
         String rutaArchivo = GAMES_FILE_PATH + nombreArchivo + ".dat";
         try {
             FileOutputStream archivoSalida = new FileOutputStream(rutaArchivo);
@@ -29,8 +29,8 @@ public class Serializacion {
 
             salida.writeObject(partida);
             salida.writeObject(horaGuardado);
-            salida.writeObject(playerOneName);
-            salida.writeObject(playerTwoName);
+            salida.writeObject(partida.getJugadores().frente());
+            salida.writeObject(partida.getJugadores().fondo());
 
             salida.close();
             archivoSalida.close();

@@ -2,13 +2,15 @@ package ar.edu.unlu.mvc.model.clases;
 
 import ar.edu.unlu.mvc.model.enumerates.Palo;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 
 public class Mano implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 6L;
     private final ArrayList<Carta> cartas;
-    // private Carta cartaExtra;
 
     /**
      * Constructor de la clase Mano.

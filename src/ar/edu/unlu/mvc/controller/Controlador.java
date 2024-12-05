@@ -47,14 +47,6 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public void cambiarJugador() {
-        try {
-            iChinchon.cambiarJugador();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
-
     public String getJugadorActual() {
         try {
             return iChinchon.getJugadorActual().getNombre();
@@ -94,7 +86,6 @@ public class Controlador implements IControladorRemoto {
             throw new RuntimeException(e);
         }
     }
-
 
     public void ordenarValor(String nombre) {
         try {
@@ -144,14 +135,6 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public String getJugador(String nombreJugador) {
-        try {
-            return iChinchon.getJugador(nombreJugador).getNombre();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public int getCartaPosition(Carta carta) {
         try {
             return iChinchon.getCartaPosition(carta);
@@ -168,6 +151,46 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
+    public void intercambiarCartas(int x, int y, String jugador) {
+        try {
+            iChinchon.intercambiarCartas(x, y, jugador);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void continuarPartida() {
+        try {
+            iChinchon.continuarPartida();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void cerrarRonda() {
+        try {
+            iChinchon.cerrarRonda();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void guardarPartida(String nombrePartida, boolean guardar) {
+        try {
+            iChinchon.guardarPartida(nombrePartida, guardar);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getGanador() {
+        try {
+            return iChinchon.getGanador().getNombre();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public <T extends IObservableRemoto> void setModeloRemoto(T t) throws RemoteException {
         this.iChinchon = (IChinchon) t;
@@ -178,19 +201,14 @@ public class Controlador implements IControladorRemoto {
         if (o instanceof Eventos index) {
             switch (index) {
                 case PARTIDA_INICIADA, CAMBIO_TURNO -> iVista.iniciarTurnos();
-                case PARTIDA_CARGADA -> iVista.startGame();
-                case PARTIDA_TERMINADA -> iVista.finishGame();
-                case RONDA_TERMINADA -> iVista.continuarPartida();
+                case PARTIDA_CARGADA -> iVista.loadGame();
+                case PARTIDA_TERMINADA, PARTIDA_CANCELADA -> iVista.finishGame(false);
+                case RONDA_TERMINADA -> iVista.cerrarRonda();
                 case CARTA_ROBADA -> iVista.actualizarMesa();
+                case PARTIDA_GUARDADA -> iVista.finishGame(true);
             }
         }
     }
 
-    public void intercambiarCartas(int x, int y, String jugador) {
-        try {
-            iChinchon.intercambiarCartas(x, y, jugador);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 }

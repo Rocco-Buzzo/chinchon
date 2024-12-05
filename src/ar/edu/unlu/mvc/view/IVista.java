@@ -11,13 +11,16 @@ public interface IVista {
 
     void startGame();
 
-    void setJugador(String nombre);
+    void loadGame();
 
-    void cargarPartida();
+    void cerrarRonda();
+
+    void setJugador(String nombre);
 
     void continuarPartida();
 
-    void finishGame();
+    void finishGame(boolean guardado);
 
     void actualizarMesa();
+
 }
