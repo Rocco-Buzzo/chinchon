@@ -8,6 +8,7 @@ import ar.edu.unlu.utilities.Cola;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 public interface IChinchon extends Serializable, IObservableRemoto {
     void iniciarPartida() throws RemoteException;
@@ -21,6 +22,8 @@ public interface IChinchon extends Serializable, IObservableRemoto {
     void cerrarRonda() throws RemoteException;
 
     void continuarPartida() throws RemoteException;
+
+    ArrayList<String> nombreJugadores() throws RemoteException;
 
     void intercambiarCartas(int n, int m, String jugador) throws RemoteException;
 

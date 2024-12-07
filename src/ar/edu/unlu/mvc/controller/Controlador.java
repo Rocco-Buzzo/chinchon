@@ -57,7 +57,7 @@ public class Controlador implements IControladorRemoto {
 
     public int sizeCartasJugadorNoActual() {
         try {
-            return iChinchon.getJugadores().fondo().getMano().getCartas().size();
+            return iChinchon.getJugadores().getFondo().getMano().getCartas().size();
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -170,6 +170,14 @@ public class Controlador implements IControladorRemoto {
     public void cerrarRonda() {
         try {
             iChinchon.cerrarRonda();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ArrayList<String> nombreJugadores() {
+        try {
+            return iChinchon.nombreJugadores();
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }

@@ -20,7 +20,7 @@ public class Serializacion {
      * @param nombreArchivo Archivo de la partida.
      */
     public static void guardarPartida(IChinchon partida, String nombreArchivo) {
-        String rutaArchivo = GAMES_FILE_PATH + nombreArchivo + ".dat";
+        String rutaArchivo = GAMES_FILE_PATH + nombreArchivo.toLowerCase() + ".dat";
         try {
             FileOutputStream archivoSalida = new FileOutputStream(rutaArchivo);
             ObjectOutputStream salida = new ObjectOutputStream(archivoSalida);
@@ -29,8 +29,8 @@ public class Serializacion {
 
             salida.writeObject(partida);
             salida.writeObject(horaGuardado);
-            salida.writeObject(partida.getJugadores().frente());
-            salida.writeObject(partida.getJugadores().fondo());
+            salida.writeObject(partida.getJugadores().getFrente());
+            salida.writeObject(partida.getJugadores().getFondo());
 
             salida.close();
             archivoSalida.close();
@@ -46,7 +46,7 @@ public class Serializacion {
     public static IChinchon cargarPartida(String nombreArchivo) {
         IChinchon partida = null;
         try {
-            FileInputStream archivoEntrada = new FileInputStream(GAMES_FILE_PATH + nombreArchivo + ".dat");
+            FileInputStream archivoEntrada = new FileInputStream(GAMES_FILE_PATH + nombreArchivo.toLowerCase() + ".dat");
             ObjectInputStream entrada = new ObjectInputStream(archivoEntrada);
             partida = (IChinchon) entrada.readObject();
         } catch (ClassNotFoundException | IOException e) {
@@ -81,8 +81,8 @@ public class Serializacion {
 
                         // Obtiene los nombres de los jugadores de la partida
                         try {
-                            String playerOneName = partida.getJugadores().frente().getNombre();
-                            String playerTwoName = partida.getJugadores().fondo().getNombre();
+                            String playerOneName = partida.getJugadores().getFrente().getNombre();
+                            String playerTwoName = partida.getJugadores().getFondo().getNombre();
 
                             String partidaInfo = String.format("%s : %s (Jugadores: %s vs %s)",
                                     horaGuardado.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")),

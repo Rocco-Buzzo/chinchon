@@ -62,14 +62,14 @@ public class Cola<T> implements Serializable{
         }
     }
 
-    public T frente() {
+    public T getFrente() {
         if (estaVacia()) {
             throw new IllegalStateException("La cola está vacía.");
         }
         return frente.dato;
     }
 
-    public T fondo() {
+    public T getFondo() {
         if (estaVacia()) {
             throw new IllegalStateException("La cola está vacía.");
         }

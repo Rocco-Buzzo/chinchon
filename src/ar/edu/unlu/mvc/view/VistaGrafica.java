@@ -195,7 +195,6 @@ public class VistaGrafica implements IVista {
 
     private void renderLoadGame() {
         chinchonFrame.setTitle("Cargar una Partida");
-        chinchonFrame.setLocationRelativeTo(null);
         JPanel load = jPanelMap.get("load-pane");
         load.removeAll();
         load.setLayout(new BorderLayout());
@@ -708,7 +707,6 @@ public class VistaGrafica implements IVista {
         button.setIcon(new ImageIcon(imagenRedimensionada));
         button.setBackground(BACKGROUND_COLOR);
         button.setPreferredSize(buttonSize);
-        button.setBorderPainted(false);
         if (nombreJugador.equals(controlador.getJugadorActual())) {
             button.addActionListener(_ -> {
                 controlador.robarCartaMazo();
@@ -725,7 +723,6 @@ public class VistaGrafica implements IVista {
         button.setIcon(new ImageIcon(imagenRedimensionada));
         button.setBackground(BACKGROUND_COLOR);
         button.setPreferredSize(buttonSize);
-        button.setBorderPainted(false);
         if (nombreJugador.equals(controlador.getJugadorActual())) {
             button.addActionListener(_ -> {
                 controlador.robarCartaDescarte();
@@ -844,7 +841,7 @@ public class VistaGrafica implements IVista {
         esperando.revalidate();
         cardLayout.show(cardPane, "esperando-pane");
     }
-
+    
     private void renderExitGame() {
         chinchonFrame.setTitle("Chinchón - Guardar Partida");
 
@@ -961,8 +958,8 @@ public class VistaGrafica implements IVista {
         return textArea;
     }
 
-    // Funciona Correctamente.
     private void playerLogin() {
+        // Configuración de la ventana principal
         chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         chinchonFrame.setTitle("Chinchón - Login");
         chinchonFrame.setLocationRelativeTo(null);
@@ -971,25 +968,26 @@ public class VistaGrafica implements IVista {
         chinchonFrame.setBackground(BACKGROUND_COLOR);
         chinchonFrame.setIconImage(new ImageIcon("src/ar/edu/unlu/assets/ICONO.png").getImage());
 
+        // Panel principal
         JPanel loginPane = jPanelMap.get("login-pane");
         loginPane.removeAll();
         loginPane.setLayout(new GridBagLayout());
         loginPane.setBackground(BACKGROUND_COLOR);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 0, 10, 0); // Espaciado entre componentes
+        gbc.insets = new Insets(10, 0, 10, 0);
         gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Title panel
+        // Título
         JLabel titlePane = new JLabel("Ingrese el nombre de usuario", JLabel.CENTER);
         titlePane.setFont(new Font("Arial", Font.BOLD, 24));
         titlePane.setForeground(Color.WHITE);
         gbc.gridy = 0;
         loginPane.add(titlePane, gbc);
 
-        // Content panel
+        // Panel de entrada de datos
         JPanel contentPane = new JPanel(new FlowLayout());
         contentPane.setBackground(BACKGROUND_COLOR);
 
@@ -1006,7 +1004,7 @@ public class VistaGrafica implements IVista {
         gbc.gridy = 1;
         loginPane.add(contentPane, gbc);
 
-        // Button panel
+        // Panel de botones
         JPanel btnPane = new JPanel(new FlowLayout());
         btnPane.setBackground(BACKGROUND_COLOR);
 
@@ -1016,32 +1014,40 @@ public class VistaGrafica implements IVista {
         btnAccept.setBackground(new Color(135, 255, 75));
         btnAccept.setPreferredSize(buttonSize);
         btnAccept.setFont(BTN_FONT);
-        btnAccept.addActionListener(_ -> onAccept(nameTextField));
 
         JButton btnCancel = new JButton("Cancelar");
         btnCancel.setBackground(new Color(255, 60, 60));
         btnCancel.setPreferredSize(buttonSize);
         btnCancel.setFont(BTN_FONT);
-        btnCancel.addActionListener(_ -> onCancel());
 
         btnPane.add(btnAccept);
         btnPane.add(btnCancel);
         gbc.gridy = 2;
         loginPane.add(btnPane, gbc);
 
+        // Listeners compartidos para botón Aceptar y tecla Enter
+        Runnable acceptAction = () -> {
+            String playerName = nameTextField.getText();
+            if (playerName.isBlank()) {
+                notificar("Ingrese el nombre del jugador antes de continuar.");
+            } else {
+                setJugador(playerName);
+                renderMenu();
+            }
+        };
+
+        // Acción para el botón "Aceptar"
+        btnAccept.addActionListener(e -> acceptAction.run());
+
+        // Acción para la tecla "Enter"
+        nameTextField.addActionListener(e -> acceptAction.run());
+
+        // Acción para el botón "Cancelar"
+        btnCancel.addActionListener(e -> onCancel());
+
         // Mostrar el panel
         cardLayout.show(cardPane, "login-pane");
         chinchonFrame.setVisible(true);
-    }
-
-    private void onAccept(JTextField nameTextField) {
-        String playerName = nameTextField.getText();
-        if (playerName.isBlank()) {
-            notificar("Ingrese el nombre del jugador antes de continuar.");
-        } else {
-            setJugador(playerName);
-            renderMenu();
-        }
     }
 
     private void onCancel() {
@@ -1055,9 +1061,69 @@ public class VistaGrafica implements IVista {
 
     @Override
     public void cerrarRonda() {
-        controlador.cerrarRonda();
         JPanel cerrarPane = jPanelMap.get("cerrar-pane");
         cerrarPane.removeAll();
+        cerrarPane.setLayout(new BoxLayout(cerrarPane, BoxLayout.Y_AXIS)); // Layout en columna
+        cerrarPane.setBackground(BACKGROUND_COLOR);
+
+        ArrayList<String> jugadores = controlador.nombreJugadores();
+
+        // Mensaje de fin de ronda
+        JLabel rondaTerminada = new JLabel("¡Ronda terminada!");
+        rondaTerminada.setFont(new Font("Arial", Font.BOLD, 32));
+        rondaTerminada.setForeground(Color.YELLOW);
+        rondaTerminada.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        cerrarPane.add(rondaTerminada);
+
+        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio entre elementos
+
+        // Mostrar los puntajes
+        for (String jugador : jugadores) {
+            int puntos = controlador.getPuntaje(jugador);
+            String mensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
+            JLabel puntajes = new JLabel(mensaje);
+            puntajes.setFont(new Font("Arial", Font.BOLD, 24));
+            puntajes.setForeground(Color.WHITE);
+            puntajes.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+            cerrarPane.add(puntajes);
+        }
+
+        cerrarPane.add(Box.createVerticalStrut(30)); // Espacio entre los puntajes y el botón
+
+        // Panel para el botón y el contador de jugadores listos
+        JPanel readyPanel = new JPanel(new FlowLayout());
+        readyPanel.setBackground(BACKGROUND_COLOR);
+
+        JLabel readyLabel = new JLabel("Jugadores listos: 0/" + jugadores.size());
+        readyLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        readyLabel.setForeground(Color.WHITE);
+
+        JButton btnContinuar = new JButton("Continuar");
+        btnContinuar.setFont(new Font("Arial", Font.BOLD, 18));
+        btnContinuar.setPreferredSize(new Dimension(200, 50));
+        btnContinuar.setBackground(new Color(135, 255, 75));
+        btnContinuar.setForeground(Color.BLACK);
+
+        // Lógica del botón para actualizar el contador y verificar la condición
+        final int[] jugadoresListos = {0}; // Contador de jugadores listos
+        btnContinuar.addActionListener(e -> {
+            jugadoresListos[0]++;
+            readyLabel.setText("Jugadores listos: " + jugadoresListos[0] + "/" + jugadores.size());
+
+            if (jugadoresListos[0] == jugadores.size() / 2) {
+                iniciarTurnos(); // Llamar a la función iniciarTurnos cuando haya 2 listos
+            }
+        });
+
+        readyPanel.add(btnContinuar);
+        readyPanel.add(readyLabel);
+        cerrarPane.add(readyPanel);
+        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio final
+
+        cerrarPane.revalidate();
+        cerrarPane.repaint();
+        // Actualizar el panel principal
+        cardLayout.show(cardPane, "cerrar-pane");
     }
 
     // Funciona
