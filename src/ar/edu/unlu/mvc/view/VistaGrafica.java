@@ -1037,13 +1037,13 @@ public class VistaGrafica implements IVista {
         };
 
         // Acción para el botón "Aceptar"
-        btnAccept.addActionListener(e -> acceptAction.run());
+        btnAccept.addActionListener(_ -> acceptAction.run());
 
         // Acción para la tecla "Enter"
-        nameTextField.addActionListener(e -> acceptAction.run());
+        nameTextField.addActionListener(_ -> acceptAction.run());
 
         // Acción para el botón "Cancelar"
-        btnCancel.addActionListener(e -> onCancel());
+        btnCancel.addActionListener(_ -> onCancel());
 
         // Mostrar el panel
         cardLayout.show(cardPane, "login-pane");
@@ -1106,7 +1106,7 @@ public class VistaGrafica implements IVista {
 
         // Lógica del botón para actualizar el contador y verificar la condición
         final int[] jugadoresListos = {0}; // Contador de jugadores listos
-        btnContinuar.addActionListener(e -> {
+        btnContinuar.addActionListener(_ -> {
             jugadoresListos[0]++;
             readyLabel.setText("Jugadores listos: " + jugadoresListos[0] + "/" + jugadores.size());
 
@@ -1159,11 +1159,6 @@ public class VistaGrafica implements IVista {
 
     private void deleteJugador() {
         this.nombreJugador = null;
-    }
-
-    @Override
-    public void continuarPartida() {
-
     }
 
     // Funciona correctamente

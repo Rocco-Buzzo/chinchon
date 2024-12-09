@@ -47,13 +47,7 @@ public class Consola implements IVista {
     public void setJugador(String nombre) {
         this.nombreJugador = nombre;
     }
-
-
-    @Override
-    public void continuarPartida() {
-
-    }
-
+    
     @Override
     public void finishGame(boolean guardado) {
 

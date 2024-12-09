@@ -17,8 +17,6 @@ public interface IVista {
 
     void setJugador(String nombre);
 
-    void continuarPartida();
-
     void finishGame(boolean guardado);
 
     void actualizarMesa();
