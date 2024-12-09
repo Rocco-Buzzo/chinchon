@@ -12,7 +12,7 @@ public class Cliente {
     public static void main(String[] args) {
         IVista vista = new VistaGrafica();
         IControladorRemoto controladorRemoto = new Controlador(vista);
-        ar.edu.unlu.rmimvc.cliente.Cliente cliente = new ar.edu.unlu.rmimvc.cliente.Cliente("127.0.0.1", 50001, "127.0.0.1", 50000);
+        ar.edu.unlu.rmimvc.cliente.Cliente cliente = new ar.edu.unlu.rmimvc.cliente.Cliente("127.0.0.10", 50001, "127.0.0.1", 14060);
         try {
             cliente.iniciar(controladorRemoto);
             vista.openGame();

@@ -74,22 +74,6 @@ public class Carta implements Serializable {
         return this.valor == carta.valor && this.palo == carta.palo;
     }
 
-//  CREAR UNA NUEVA CLASE PARA MOSTRAR LA CARTA EN PANTALLA.
-
-//    public void cartaConsola(StringBuilder[] lines) {
-//        String valorStr = (valor > 9 ? String.valueOf(valor) : " " + valor);
-//
-//        lines[0].append(" .---------.");
-//        lines[1].append(" |").append(valorStr).append(".---.  |");
-//        lines[2].append(" |  : ").append(primerLetraPalo(palo.toString())).append(" :  |");
-//        lines[3].append(" |  '---'").append(valorStr).append("|");
-//        lines[4].append(" '---------'");
-//    }
-
-//    public String primerLetraPalo(String palo) {
-//        return String.valueOf(palo.charAt(0));
-//    }
-
     public ImageIcon getImagen() {
        return new ImageIcon( "src/ar/edu/unlu/assets/" + this + ".png");
     }
