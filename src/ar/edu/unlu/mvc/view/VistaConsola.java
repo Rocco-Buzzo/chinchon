@@ -6,6 +6,8 @@ import ar.edu.unlu.mvc.model.clases.Carta;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
 public class VistaConsola implements IVista {
@@ -58,7 +60,25 @@ public class VistaConsola implements IVista {
 
     @Override
     public void cerrarRonda() {
+        limpiarActionListeners(input, ok);
+        limpiarConsola();
+        ArrayList<String> jugadores = controlador.nombreJugadores();
 
+        consola.append("Cerrando ronda.\n\n");
+        consola.append("¡Ronda terminada!\n");
+        consola.append("Ganador: " + controlador.getJugadorActual() + "\n\n");
+        consola.append("Jugadores en partida:\n");
+        for (String jugador : jugadores) {
+            consola.append("- " + jugador + " puntaje: " + controlador.getPuntaje(jugador) + "\n");
+        }
+
+        ActionListener continueGame = _ -> {
+            input.setText("");
+            iniciarTurnos();
+        };
+
+        input.addActionListener(continueGame);
+        ok.addActionListener(continueGame);
     }
 
     @Override
@@ -68,12 +88,30 @@ public class VistaConsola implements IVista {
 
     @Override
     public void finishGame(boolean guardado) {
+        limpiarActionListeners(input, ok);
+        String mensaje = (controlador.getGanador() != null && !controlador.getGanador().isEmpty())
+                ? "¡La partida ha finalizado! Ganador: " + controlador.getGanador()
+                : "Partida cancelada.";
 
+        if (guardado) {
+            mensaje = "Partida guardada correctamente.";
+        }
+
+        consola.append(mensaje + "\n\n");
+        consola.append("Presione ENTER para salir.\n");
+
+        ActionListener exitGame = _ -> {
+            input.setText("");
+            System.exit(0);
+        };
+
+        input.addActionListener(exitGame);
+        ok.addActionListener(exitGame);
     }
 
     @Override
     public void actualizarMesa() {
-
+        iniciarTurnos();
     }
 
     // Inicializar Menu.
@@ -249,7 +287,7 @@ public class VistaConsola implements IVista {
         input.addActionListener(cartasListener);
     }
 
-    // 2. Renderiza el cargar partida.
+    // TODO: 2. Renderiza el cargar partida.
     private void renderLoadGame() {
         limpiarActionListeners(input, ok);
         // Aquí puedes incluir el código para mostrar la lógica de cargar una partida
@@ -259,9 +297,14 @@ public class VistaConsola implements IVista {
     private void renderJoinGame() {
         limpiarConsola();
         limpiarActionListeners(input, ok);
-        consola.append("Uniendose a partida.\n");
-        consola.append("Esperando jugadores ...\n");
+
         controlador.agregarJugador(nombreJugador);
+        if (controlador.getJugadoresSize() == 1) {
+            consola.append("Uniendose a partida.\n");
+            consola.append("Esperando jugadores ...\n");
+        } else {
+            startGame();
+        }
     }
 
     // 4. Renderizar las reglas del juego.
@@ -299,6 +342,13 @@ public class VistaConsola implements IVista {
 
     // Metodo para renderizar la partida del jugador en turno.
     private void renderInGame() {
+        chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        chinchonFrame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                renderExitGame();
+            }
+        });
         limpiarConsola();
         limpiarActionListeners(input, ok);
         // Opciones disponibles
@@ -368,7 +418,7 @@ public class VistaConsola implements IVista {
                     intercambiarCartas();
                     break;
                 case "ESC":
-                    salirDelJuego();
+                    renderExitGame();
                     break;
                 default:
                     consola.append("Opción no válida. Por favor, selecciona una opción válida.\n");
@@ -382,6 +432,13 @@ public class VistaConsola implements IVista {
 
     // Metodo para renderizar la partida del jugador que no esta en turno.
     private void renderWaitingTurn() {
+        chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        chinchonFrame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                renderExitGame();
+            }
+        });
         limpiarConsola();
         limpiarActionListeners(input, ok);
         // Opciones disponibles
@@ -436,7 +493,7 @@ public class VistaConsola implements IVista {
                     intercambiarCartas();
                     break;
                 case "ESC":
-                    salirDelJuego();
+                    renderExitGame();
                     break;
                 default:
                     consola.append("Opción no válida. Por favor, selecciona una opción válida.\n");
@@ -446,6 +503,58 @@ public class VistaConsola implements IVista {
 
         input.addActionListener(inGameListener);
         ok.addActionListener(inGameListener);
+    }
+
+    // Metodo para renderizar la salida de la partida
+    private void renderExitGame() {
+        limpiarConsola();
+        limpiarActionListeners(input, ok);
+
+        // Mensaje inicial
+        consola.append("¿Quieres guardar la partida antes de salir?\n");
+        consola.append("1. Guardar y salir.\n");
+        consola.append("2. Salir sin guardar.\n");
+        consola.append("3. Cancelar y volver al juego.\n");
+
+        // Listener para manejar la opción seleccionada
+        ActionListener exitGameAction = _ -> {
+            String opcion = input.getText().trim();
+            input.setText(""); // Limpiar el campo de texto
+
+            switch (opcion) {
+                case "1": // Guardar y salir
+                    consola.append("Ingresa el nombre con el que deseas guardar la partida:\n");
+
+                    // Listener para ingresar el nombre de la partida
+                    limpiarActionListeners(input, ok);
+                    input.addActionListener(_ -> {
+                        String nombrePartida = input.getText().trim();
+                        if (!nombrePartida.isEmpty()) {
+                            controlador.guardarPartida(nombrePartida, true);
+                            consola.append("Partida guardada exitosamente como " + nombrePartida + ". Saliendo del juego...\n");
+                        } else {
+                            consola.append("El nombre de la partida no puede estar vacío. Intenta nuevamente.\n");
+                        }
+                    });
+                    break;
+
+                case "2": // Salir sin guardar
+                    controlador.guardarPartida("", false);
+                    consola.append("Saliendo del juego sin guardar...\n");
+                    break;
+
+                case "3": // Cancelar y volver al juego
+                    consola.append("Regresando al juego...\n");
+                    iniciarTurnos(); // Volver al juego
+                    break;
+
+                default: // Opción inválida
+                    consola.append("Opción no válida. Por favor, elige una opción entre 1 y 3.\n");
+            }
+        };
+
+        input.addActionListener(exitGameAction); // Asociar el listener al campo de texto
+        ok.addActionListener(exitGameAction);   // Asociar el listener al botón OK
     }
 
     // Opciones del Jugador
@@ -489,7 +598,7 @@ public class VistaConsola implements IVista {
                 int indice1 = Integer.parseInt(input.getText().trim());
                 input.setText("");
 
-                if (indice1 < 0 || indice1 >= controlador.getJugadorCartas(nombreJugador).size()) {
+                if (indice1 < 0 || indice1 > controlador.getJugadorCartas(nombreJugador).size()) {
                     consola.append("Índice inválido. Por favor, ingresa un número válido.\n");
                     return;
                 }
@@ -505,7 +614,7 @@ public class VistaConsola implements IVista {
                         int indice2 = Integer.parseInt(input.getText().trim());
                         input.setText("");
 
-                        if (indice2 < 0 || indice2 >= controlador.getJugadorCartas(nombreJugador).size()) {
+                        if (indice2 < 0 || indice2 > controlador.getJugadorCartas(nombreJugador).size()) {
                             consola.append("Índice inválido. Por favor, ingresa un número válido.\n");
                             return;
                         }
@@ -545,9 +654,6 @@ public class VistaConsola implements IVista {
             controlador.ordenarValor(nombreJugador);
         }
         iniciarTurnos();
-    }
-
-    private void salirDelJuego() {
     }
 
     // Metodo para limpiar la consola

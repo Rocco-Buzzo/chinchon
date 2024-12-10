@@ -210,10 +210,10 @@ public class VistaGrafica implements IVista {
         titleLabel.setForeground(Color.yellow);
         load.add(titleLabel, BorderLayout.NORTH);
 
-        ArrayList<String> partidasGuardadas = Serializacion.listarPartidas();
+        ArrayList<String> partidasGuardadas = Serializacion.listarPartidas(nombreJugador);
         if (partidasGuardadas.isEmpty()) {
-            renderMenu();
             notificar("No hay partidas guardadas.");
+            renderMenu();
             return;
         }
 

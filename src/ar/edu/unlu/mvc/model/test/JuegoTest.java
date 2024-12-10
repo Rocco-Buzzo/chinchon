@@ -190,7 +190,7 @@ public class JuegoTest {
         iChinchon.iniciarPartida();
         iChinchon.guardarPartida("partidaUno", true);
         IChinchon chinchon = Serializacion.cargarPartida("partidaUno");
-        ArrayList<String> games = Serializacion.listarPartidas();
+        ArrayList<String> games = Serializacion.listarPartidas("Rocco");
         for (String partida : games) {
             System.out.println(partida);
         }

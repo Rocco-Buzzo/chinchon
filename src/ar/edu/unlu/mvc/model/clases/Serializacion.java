@@ -56,42 +56,46 @@ public class Serializacion {
     }
 
     /**
-     * Funcion que permite listar las partidas guardadas.
-     **/
-    public static ArrayList<String> listarPartidas() {
+     * Funcion que permite listar las partidas guardadas filtradas por nombre de jugador.
+     * @param jugador Nombre del jugador.
+     * @return Lista de partidas que incluyen al jugador especificado.
+     */
+    public static ArrayList<String> listarPartidas(String jugador) {
         ArrayList<String> archivos = new ArrayList<>();
-        HashMap<LocalDateTime, ArrayList<String>> archivosPorDiaYHora = new HashMap<>();
-
         File carpeta = new File(GAMES_FILE_PATH);
 
         // Verifica si la carpeta existe y es un directorio
         if (carpeta.exists() && carpeta.isDirectory()) {
-            File[] archivosEnCarpeta = carpeta.listFiles((dir, name) -> name.endsWith(".dat"));
+            File[] archivosEnCarpeta = carpeta.listFiles((_, name) -> name.endsWith(".dat"));
 
             if (archivosEnCarpeta != null) {
                 for (File archivo : archivosEnCarpeta) {
                     LocalDateTime horaGuardado = obtenerHoraGuardado(archivo);
                     if (horaGuardado != null) {
-                        String nombreArchivo = archivo.getName();
                         String fileNameLoad = archivo.getName();
                         if (fileNameLoad.endsWith(".dat")) {
                             fileNameLoad = fileNameLoad.substring(0, fileNameLoad.length() - 4);
                         }
                         IChinchon partida = cargarPartida(fileNameLoad);
 
-                        // Obtiene los nombres de los jugadores de la partida
-                        try {
-                            String playerOneName = partida.getJugadores().getFrente().getNombre();
-                            String playerTwoName = partida.getJugadores().getFondo().getNombre();
+                        if (partida != null) {
+                            try {
+                                String playerOneName = partida.getJugadores().getFrente().getNombre();
+                                String playerTwoName = partida.getJugadores().getFondo().getNombre();
 
-                            String partidaInfo = String.format("%s : %s (Jugadores: %s vs %s)",
-                                    horaGuardado.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")),
-                                    nombreArchivo, playerOneName, playerTwoName);
+                                // Verifica si el nombre coincide con alguno de los jugadores
+                                if (playerOneName.equalsIgnoreCase(jugador) || playerTwoName.equalsIgnoreCase(jugador)) {
 
-                            archivos.add(partidaInfo);
+                                    String partidaInfo = String.format("%s : %s (Jugadores: %s vs %s)",
+                                            horaGuardado.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")),
+                                            archivo.getName(), playerOneName, playerTwoName);
 
-                        } catch (RemoteException e) {
-                            throw new RuntimeException("Error al obtener los nombres de los jugadores: " + e.getMessage(), e);
+                                    archivos.add(partidaInfo);
+                                }
+
+                            } catch (RemoteException e) {
+                                throw new RuntimeException("Error al obtener los nombres de los jugadores: " + e.getMessage(), e);
+                            }
                         }
                     }
                 }
@@ -126,7 +130,6 @@ public class Serializacion {
         }
         return null;
     }
-
 
     /**
      * Guarda el top 5 de jugadores en un archivo.
