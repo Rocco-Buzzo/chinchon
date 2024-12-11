@@ -2,6 +2,7 @@ package ar.edu.unlu.mvc.view;
 
 import ar.edu.unlu.mvc.controller.Controlador;
 import ar.edu.unlu.mvc.model.clases.Carta;
+import ar.edu.unlu.mvc.model.clases.Serializacion;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +21,7 @@ public class VistaConsola implements IVista {
 
     private final JFrame chinchonFrame = new JFrame("Chinchon - Main Menu");
 
-    private static final Font GAME_FONT = new Font("Courier New", Font.PLAIN, 14);
+    private static final Font GAME_FONT = new Font("Courier New", Font.PLAIN, 18);
 
     @Override
     public void setControlador(Controlador controlador) {
@@ -287,10 +288,41 @@ public class VistaConsola implements IVista {
         input.addActionListener(cartasListener);
     }
 
-    // TODO: 2. Renderiza el cargar partida.
+    // 2. Renderiza el cargar partida.
     private void renderLoadGame() {
         limpiarActionListeners(input, ok);
         // Aquí puedes incluir el código para mostrar la lógica de cargar una partida
+        ArrayList<String> partidasGuardadas = Serializacion.listarPartidas(nombreJugador);
+        if (partidasGuardadas.isEmpty()) {
+            consola.append("No hay partidas guardadas.");
+            consola.append("Presion ENTER para continuar.\n");
+            ActionListener backAction = _ -> {
+                input.setText("");
+                renderMenu();
+            };
+            input.addActionListener(backAction);
+            ok.addActionListener(backAction);
+        } else {
+            consola.append("Partidas guardadas:\n");
+            for (int i = 0; i < partidasGuardadas.size(); i++) {
+                consola.append(i + 1 + ". " + partidasGuardadas.get(i) + "\n");
+            }
+            consola.append("Selecciona la partida que deseas cargar ingresando solo el nombre:\n");
+            ActionListener loadGameListener = _ -> {
+                String partidaSeleccionada = input.getText().trim();
+                if (partidaSeleccionada.isEmpty()) {
+                    consola.append("Debe introducir o seleccionar un nombre de partida válido.");
+                } else {
+                    if (controlador.cargarPartida(partidaSeleccionada)) {
+                        consola.append("Partida cargada correctamente.");
+                    } else {
+                        consola.append("La partida seleccionada no existe.");
+                    }
+                }
+            };
+            input.addActionListener(loadGameListener);
+            ok.addActionListener(loadGameListener);
+        }
     }
 
     // 3. Renderiza el unirse a la partida.
@@ -523,36 +555,19 @@ public class VistaConsola implements IVista {
 
             switch (opcion) {
                 case "1": // Guardar y salir
-                    consola.append("Ingresa el nombre con el que deseas guardar la partida:\n");
-
-                    // Listener para ingresar el nombre de la partida
-                    limpiarActionListeners(input, ok);
-                    input.addActionListener(_ -> {
-                        String nombrePartida = input.getText().trim();
-                        if (!nombrePartida.isEmpty()) {
-                            controlador.guardarPartida(nombrePartida, true);
-                            consola.append("Partida guardada exitosamente como " + nombrePartida + ". Saliendo del juego...\n");
-                        } else {
-                            consola.append("El nombre de la partida no puede estar vacío. Intenta nuevamente.\n");
-                        }
-                    });
+                    saveGame(true);
                     break;
-
                 case "2": // Salir sin guardar
-                    controlador.guardarPartida("", false);
-                    consola.append("Saliendo del juego sin guardar...\n");
+                    saveGame(false);
                     break;
-
                 case "3": // Cancelar y volver al juego
                     consola.append("Regresando al juego...\n");
                     iniciarTurnos(); // Volver al juego
                     break;
-
                 default: // Opción inválida
                     consola.append("Opción no válida. Por favor, elige una opción entre 1 y 3.\n");
             }
         };
-
         input.addActionListener(exitGameAction); // Asociar el listener al campo de texto
         ok.addActionListener(exitGameAction);   // Asociar el listener al botón OK
     }
@@ -654,6 +669,29 @@ public class VistaConsola implements IVista {
             controlador.ordenarValor(nombreJugador);
         }
         iniciarTurnos();
+    }
+
+    // Metodo para guardar o no la partida.
+    private void saveGame(boolean b) {
+        if (b) {
+            consola.append("Ingresa el nombre con el que deseas guardar la partida:\n");
+
+            // Listener para ingresar el nombre de la partida
+            limpiarActionListeners(input, ok);
+            input.addActionListener(_ -> {
+                String nombrePartida = input.getText().trim();
+                if (!nombrePartida.isEmpty()) {
+                    controlador.guardarPartida(nombrePartida, true);
+                    consola.append("Partida guardada exitosamente como " + nombrePartida + ". Saliendo del juego...\n");
+                } else {
+                    consola.append("El nombre de la partida no puede estar vacío. Intenta nuevamente.\n");
+                }
+            });
+        } else {
+            controlador.guardarPartida("", false);
+            consola.append("Saliendo del juego sin guardar...\n");
+        }
+        // controlador.resetGame();
     }
 
     // Metodo para limpiar la consola

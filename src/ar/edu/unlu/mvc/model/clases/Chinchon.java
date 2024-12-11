@@ -88,7 +88,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             Serializacion.guardarPartida(this, nombreArchivo);
             notificarObservadores(Eventos.PARTIDA_GUARDADA);
         } else {
-            reset();
             notificarObservadores(Eventos.PARTIDA_CANCELADA);
         }
     }
@@ -105,7 +104,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             if (puedeTerminar()) {
                 terminarPartida();
                 notificarObservadores(Eventos.PARTIDA_TERMINADA);
-                reset();
             } else {
                 estadoPartida = EstadoPartida.JUGANDO;
                 notificarObservadores(Eventos.RONDA_TERMINADA);
@@ -155,21 +153,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             jugadores.encolar(jAux);
         }
     }
-
-    private void reset() throws RemoteException {
-        mazo = null;
-        descarte = new Descarte();
-        jugadores = new Cola<>();
-        jugadorActual = null;
-        ganador = new Jugador("");
-        top = new Top();
-        puntosMaximos = 0;
-        cantidadRondas = 1;
-        contieneComodin = false;
-        cantCartas = 0;
-        estadoPartida = EstadoPartida.ESTABLECIENDO;
-    }
-
 
     @Override
     public void intercambiarCartas(int n, int m, String jugador) throws RemoteException {
@@ -225,7 +208,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             notificarObservadores(Eventos.CAMBIO_TURNO);
         }
     }
-
 
     /**
      * Funcion que permite tirar una carta, recibe un numero como parametro y tira la carta que corresponde.
