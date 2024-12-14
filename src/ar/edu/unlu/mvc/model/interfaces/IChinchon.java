@@ -68,4 +68,6 @@ public interface IChinchon extends Serializable, IObservableRemoto {
     Jugador getJugador(String nombreJugador) throws RemoteException;
 
     int getPuntajeJugador(String nombre) throws RemoteException;
+
+    ArrayList<Carta> getManoGanadora() throws RemoteException;
 }

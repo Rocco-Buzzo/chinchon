@@ -143,9 +143,9 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public String topeDescarte() {
+    public Carta topeDescarte() {
         try {
-            return iChinchon.getDescarte().toString();
+            return iChinchon.getDescarte().getTope();
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
@@ -199,6 +199,14 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
+    public ArrayList<Carta> getManoGanadora() {
+        try {
+            return iChinchon.getManoGanadora();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public <T extends IObservableRemoto> void setModeloRemoto(T t) throws RemoteException {
         this.iChinchon = (IChinchon) t;
@@ -217,4 +225,5 @@ public class Controlador implements IControladorRemoto {
             }
         }
     }
+
 }

@@ -21,7 +21,7 @@ public class VistaConsola implements IVista {
 
     private final JFrame chinchonFrame = new JFrame("Chinchon - Main Menu");
 
-    private static final Font GAME_FONT = new Font("Courier New", Font.PLAIN, 18);
+    private static final Font GAME_FONT = new Font("Courier New", Font.PLAIN, 14);
 
     @Override
     public void setControlador(Controlador controlador) {
@@ -68,6 +68,28 @@ public class VistaConsola implements IVista {
         consola.append("Cerrando ronda.\n\n");
         consola.append("¡Ronda terminada!\n");
         consola.append("Ganador: " + controlador.getJugadorActual() + "\n\n");
+        consola.append("Mano ganadora: \n");
+
+        // Crear las líneas para renderizar las cartas
+        ArrayList<Carta> manoGanadora = controlador.getManoGanadora();
+
+        StringBuilder[] cartaLineas = new StringBuilder[5];
+        for (int i = 0; i < cartaLineas.length; i++) {
+            cartaLineas[i] = new StringBuilder();
+        }
+
+        for (Carta carta : manoGanadora) {
+            // Convierte cada carta a una representación gráfica
+            String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
+            for (int i = 0; i < asciiCarta.length; i++) {
+                cartaLineas[i].append(asciiCarta[i]); // Sin espacios entre cartas
+            }
+        }
+        // Agregar las líneas de las cartas a la consola
+        for (StringBuilder linea : cartaLineas) {
+            consola.append(linea.toString());
+            consola.append("\n");
+        }
         consola.append("Jugadores en partida:\n");
         for (String jugador : jugadores) {
             consola.append("- " + jugador + " puntaje: " + controlador.getPuntaje(jugador) + "\n");
@@ -89,7 +111,11 @@ public class VistaConsola implements IVista {
 
     @Override
     public void finishGame(boolean guardado) {
+        limpiarConsola();
         limpiarActionListeners(input, ok);
+        ArrayList<String> jugadores = controlador.nombreJugadores();
+
+        // Mensaje principal
         String mensaje = (controlador.getGanador() != null && !controlador.getGanador().isEmpty())
                 ? "¡La partida ha finalizado! Ganador: " + controlador.getGanador()
                 : "Partida cancelada.";
@@ -99,8 +125,44 @@ public class VistaConsola implements IVista {
         }
 
         consola.append(mensaje + "\n\n");
-        consola.append("Presione ENTER para salir.\n");
 
+        if (!guardado && controlador.getGanador() != null && !controlador.getGanador().isEmpty()) {
+            // Mostrar mano ganadora
+            consola.append("Mano ganadora:\n");
+
+            // Crear las líneas para renderizar las cartas
+            ArrayList<Carta> manoGanadora = controlador.getManoGanadora();
+
+            StringBuilder[] cartaLineas = new StringBuilder[5];
+            for (int i = 0; i < cartaLineas.length; i++) {
+                cartaLineas[i] = new StringBuilder();
+            }
+
+            for (Carta carta : manoGanadora) {
+                // Convierte cada carta a una representación gráfica
+                String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
+                for (int i = 0; i < asciiCarta.length; i++) {
+                    cartaLineas[i].append(asciiCarta[i]); // Sin espacios entre cartas
+                }
+            }
+
+            // Agregar las líneas de las cartas a la consola
+            for (StringBuilder linea : cartaLineas) {
+                consola.append(linea.toString());
+                consola.append("\n");
+            }
+        }
+
+        // Mostrar puntajes finales de todos los jugadores
+        consola.append("\nPuntajes finales:\n");
+        for (String jugador : jugadores) {
+            consola.append("- " + jugador + " puntaje: " + controlador.getPuntaje(jugador) + "\n");
+        }
+
+        // Mensaje de cierre
+        consola.append("\nPresione ENTER para salir.\n");
+
+        // Acción para cerrar el juego
         ActionListener exitGame = _ -> {
             input.setText("");
             System.exit(0);
@@ -109,6 +171,7 @@ public class VistaConsola implements IVista {
         input.addActionListener(exitGame);
         ok.addActionListener(exitGame);
     }
+
 
     @Override
     public void actualizarMesa() {
@@ -147,9 +210,9 @@ public class VistaConsola implements IVista {
 
         // Botón
         ok = new JButton("OK");
-        ok.setBackground(Color.GRAY);
+        ok.setBackground(Color.DARK_GRAY);
         ok.setForeground(Color.WHITE);
-        ok.setFont(new Font("Courier New", Font.BOLD, 14));
+        ok.setFont(GAME_FONT);
         panelInferior.add(ok, BorderLayout.EAST);
 
         chinchonFrame.add(panelInferior, BorderLayout.SOUTH);
@@ -385,32 +448,28 @@ public class VistaConsola implements IVista {
         limpiarActionListeners(input, ok);
         // Opciones disponibles
         consola.append("Bienvenido, " + nombreJugador + "!\n\n");
-        consola.append("Turno de: " + controlador.getJugadorActual() + "\n\n");
+        consola.append("Turno de: " + controlador.getJugadorActual() + "\n");
+        consola.append("Tu puntaje: " + controlador.getPuntaje(nombreJugador) + "\n\n");
+
         consola.append("- Opciones:\n");
         consola.append(" [M] Robar una carta del Mazo.\n [D] Robar una carta del Descarte.\n [T] Tirar una carta.\n [C] Cerrar ronda.\n");
         consola.append(" [P] Ordenar mano por palo.\n [V] Ordenar mano por valor.\n [I] Intercambiar cartas.\n [ESC] Salir de la partida.\n\n");
         consola.append("(Nota: Recuerda armar los juegos a la izquierda de la mano, y poner la carta que desea bajar a la derecha del todo.)\n\n");
 
         // Renderizar Carta Descarte
-        consola.append("- Carta Descarte: " + controlador.topeDescarte() + "\n\n");
-
+        consola.append("- Carta Descarte:\n");
+        if (controlador.topeDescarte() != null) {
+            for (StringBuilder linea : CartaImagen.getCartaASCII(controlador.topeDescarte())) {
+                consola.append(linea.toString());
+                consola.append("\n");
+            }
+        }
         // Renderizar cartas del jugador
         consola.append("Tu mano:\n");
         // Crear las líneas para renderizar las cartas
         ArrayList<Carta> cartasJugador = controlador.getJugadorCartas(nombreJugador);
 
-        StringBuilder[] cartaLineas = new StringBuilder[5];
-        for (int i = 0; i < cartaLineas.length; i++) {
-            cartaLineas[i] = new StringBuilder();
-        }
-
-        for (Carta carta : cartasJugador) {
-            // Convierte cada carta a una representación gráfica
-            String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
-            for (int i = 0; i < asciiCarta.length; i++) {
-                cartaLineas[i].append(asciiCarta[i]); // Sin espacios entre cartas
-            }
-        }
+        StringBuilder[] cartaLineas = CartaImagen.getCartasASCII(cartasJugador);
 
         // Agregar las líneas de las cartas a la consola
         for (StringBuilder linea : cartaLineas) {
@@ -436,6 +495,10 @@ public class VistaConsola implements IVista {
                     robarCarta(false);
                     break;
                 case "T":
+                    if (controlador.getJugadorCartas(nombreJugador).size() == 7) {
+                        consola.append("Necesitas tener 8 cartas para bajar una");
+                        break;
+                    }
                     tirarCarta();
                     break;
                 case "C":

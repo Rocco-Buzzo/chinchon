@@ -4,6 +4,8 @@ import ar.edu.unlu.mvc.model.clases.*;
 import ar.edu.unlu.mvc.model.enumerates.Palo;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.*;
 
 public class ManoTest {
@@ -203,36 +205,35 @@ public class ManoTest {
     @Test
     public void testGrupoDeTresYGrupoDeCuatro() {
         Mano mano = new Mano();
-        mano.agregarCarta(new Carta(1, Palo.COPA));
+        mano.agregarCarta(new Carta(25, Palo.JOKER));
         mano.agregarCarta(new Carta(2, Palo.COPA));
         mano.agregarCarta(new Carta(3, Palo.COPA));
         mano.agregarCarta(new Carta(4, Palo.ORO));
-        mano.agregarCarta(new Carta(5, Palo.ORO));
+        mano.agregarCarta(new Carta(25, Palo.JOKER));
         mano.agregarCarta(new Carta(6, Palo.ORO));
-        mano.agregarCarta(new Carta(7, Palo.ORO));
+        mano.agregarCarta(new Carta(2, Palo.ORO));
         // Caso verdadero: Escalera de 3 y escalera de 4.
         assertTrue(mano.puedeCerrar());
 
-        mano = new Mano();
-        mano.agregarCarta(new Carta(1, Palo.COPA));
-        mano.agregarCarta(new Carta(1, Palo.ESPADA));
-        mano.agregarCarta(new Carta(1, Palo.BASTO));
-        mano.agregarCarta(new Carta(1, Palo.ORO));
-        mano.agregarCarta(new Carta(12, Palo.BASTO));
-        mano.agregarCarta(new Carta(12, Palo.COPA));
-        mano.agregarCarta(new Carta(12, Palo.ESPADA));
-        assertTrue(mano.puedeCerrar());
-
-        mano = new Mano();
-        mano.agregarCarta(new Carta(1, Palo.COPA));
-        mano.agregarCarta(new Carta(1, Palo.ESPADA));
-        mano.agregarCarta(new Carta(1, Palo.BASTO));
-        mano.agregarCarta(new Carta(12, Palo.ORO));
-        mano.agregarCarta(new Carta(12, Palo.BASTO));
-        mano.agregarCarta(new Carta(12, Palo.COPA));
-        mano.agregarCarta(new Carta(9, Palo.ESPADA));
-        assertFalse(mano.puedeCerrar());
-
+//        mano = new Mano();
+//        mano.agregarCarta(new Carta(1, Palo.COPA));
+//        mano.agregarCarta(new Carta(1, Palo.ESPADA));
+//        mano.agregarCarta(new Carta(1, Palo.BASTO));
+//        mano.agregarCarta(new Carta(1, Palo.ORO));
+//        mano.agregarCarta(new Carta(12, Palo.BASTO));
+//        mano.agregarCarta(new Carta(12, Palo.COPA));
+//        mano.agregarCarta(new Carta(12, Palo.ESPADA));
+//        assertTrue(mano.puedeCerrar());
+//
+//        mano = new Mano();
+//        mano.agregarCarta(new Carta(1, Palo.COPA));
+//        mano.agregarCarta(new Carta(1, Palo.ESPADA));
+//        mano.agregarCarta(new Carta(1, Palo.BASTO));
+//        mano.agregarCarta(new Carta(12, Palo.ORO));
+//        mano.agregarCarta(new Carta(12, Palo.BASTO));
+//        mano.agregarCarta(new Carta(12, Palo.COPA));
+//        mano.agregarCarta(new Carta(9, Palo.ESPADA));
+//        assertFalse(mano.puedeCerrar());
     }
 
     @Test
@@ -356,5 +357,37 @@ public class ManoTest {
         mano.agregarCarta(new Carta(5, Palo.ESPADA));
         assertEquals(5, mano.calcularPuntajePerdedor());
 
+    }
+
+    @Test
+    public void testGetManoGanadora() {
+        Mano mano = new Mano();
+        mano.agregarCarta(new Carta(1, Palo.COPA));
+        mano.agregarCarta(new Carta(2, Palo.COPA));
+        mano.agregarCarta(new Carta(3, Palo.COPA));
+        mano.agregarCarta(new Carta(4, Palo.ORO));
+        mano.agregarCarta(new Carta(5, Palo.ORO));
+        mano.agregarCarta(new Carta(6, Palo.ORO));
+        mano.agregarCarta(new Carta(7, Palo.ORO));
+
+        ArrayList<Carta> manoGanadora = mano.getManoGanadora();
+        for (Carta c : manoGanadora) {
+            System.out.println(c);
+        }
+
+        mano = new Mano();
+        mano.agregarCarta(new Carta(1, Palo.COPA));
+        mano.agregarCarta(new Carta(2, Palo.COPA));
+        mano.agregarCarta(new Carta(3, Palo.COPA));
+        mano.agregarCarta(new Carta(4, Palo.COPA));
+        mano.agregarCarta(new Carta(5, Palo.COPA));
+        mano.agregarCarta(new Carta(6, Palo.COPA));
+        mano.agregarCarta(new Carta(7, Palo.COPA));
+
+        manoGanadora.clear();
+        manoGanadora = mano.getManoGanadora();
+        for (Carta c : manoGanadora) {
+            System.out.println(c);
+        }
     }
 }

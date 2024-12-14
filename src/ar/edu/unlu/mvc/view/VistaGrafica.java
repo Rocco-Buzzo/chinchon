@@ -556,7 +556,7 @@ public class VistaGrafica implements IVista {
         gbc.gridx = 0;
         gbc.gridy = 0;
 
-        JLabel puntajeLabel = new JLabel("Puntaje: " + controlador.getPuntaje(nombreJugador));
+        JLabel puntajeLabel = new JLabel("Tu puntaje: " + controlador.getPuntaje(nombreJugador));
         puntajeLabel.setFont(new Font("Arial", Font.BOLD, 24));
         puntajeLabel.setForeground(Color.WHITE);
         infoPanel.add(puntajeLabel, gbc);
@@ -645,7 +645,7 @@ public class VistaGrafica implements IVista {
 
         JPanel cartasEnMano = new JPanel(new FlowLayout());
         cartasEnMano.setBackground(BACKGROUND_COLOR);
-        Dimension buttonSize = new Dimension(129, 230);
+        Dimension buttonSize = new Dimension(113, 200);
 
         ArrayList<Carta> cartasAMostrar;
 
@@ -718,7 +718,11 @@ public class VistaGrafica implements IVista {
         gbc.gridx = 1;
         // Renderizar boton de DESCARTE
         button = new JButton();
-        iconoOriginal = new ImageIcon("src/ar/edu/unlu/assets/" + controlador.topeDescarte() + ".png");
+        if (controlador.topeDescarte() != null) {
+            iconoOriginal = new ImageIcon("src/ar/edu/unlu/assets/" + controlador.topeDescarte().toString() + ".png");
+        } else {
+            iconoOriginal = new ImageIcon("src/ar/edu/unlu/assets/DESCARTE.png");
+        }
         imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
         button.setIcon(new ImageIcon(imagenRedimensionada));
         button.setBackground(BACKGROUND_COLOR);
@@ -1076,6 +1080,31 @@ public class VistaGrafica implements IVista {
         cerrarPane.add(rondaTerminada);
 
         cerrarPane.add(Box.createVerticalStrut(20)); // Espacio entre elementos
+        JLabel ganador = new JLabel("Ganador: " + controlador.getJugadorActual());
+        ganador.setFont(new Font("Arial", Font.BOLD, 24));
+        ganador.setForeground(Color.WHITE);
+        ganador.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        cerrarPane.add(ganador);
+        JLabel manoGanadora = new JLabel("Mano ganadora: ");
+        manoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
+        manoGanadora.setForeground(Color.WHITE);
+        manoGanadora.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        cerrarPane.add(manoGanadora);
+
+        Dimension buttonSize = new Dimension(113, 200);
+
+        JPanel manoGanadoraPane = new JPanel(new FlowLayout());
+        manoGanadoraPane.setBackground(BACKGROUND_COLOR);
+        for (Carta c : controlador.getManoGanadora()) {
+            JButton button = new JButton();
+            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
+            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+            button.setIcon(new ImageIcon(imagenRedimensionada));
+            button.setBackground(BACKGROUND_COLOR);
+            button.setPreferredSize(buttonSize);
+            manoGanadoraPane.add(button);
+        }
+        cerrarPane.add(manoGanadoraPane);
 
         // Mostrar los puntajes
         for (String jugador : jugadores) {
@@ -1186,6 +1215,7 @@ public class VistaGrafica implements IVista {
         if (guardado) {
             mensaje = "Partida guardada correctamente.";
         }
+
         JLabel lblMensaje = new JLabel(mensaje);
         lblMensaje.setFont(new Font("Arial", Font.BOLD, 24));
         lblMensaje.setForeground(Color.WHITE);
@@ -1193,8 +1223,49 @@ public class VistaGrafica implements IVista {
         finishPane.add(Box.createVerticalGlue()); // Espaciado para centrar verticalmente
         finishPane.add(lblMensaje);
 
-        // Espaciado entre el mensaje y el botón
+        // Espaciado entre elementos
         finishPane.add(Box.createVerticalStrut(20));
+
+        // Mostrar la mano ganadora
+        JLabel lblManoGanadora = new JLabel("Mano ganadora:");
+        lblManoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
+        lblManoGanadora.setForeground(Color.WHITE);
+        lblManoGanadora.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        finishPane.add(lblManoGanadora);
+
+        // Panel para mostrar las cartas de la mano ganadora
+        Dimension buttonSize = new Dimension(113, 200);
+        JPanel manoGanadoraPane = new JPanel(new FlowLayout());
+        manoGanadoraPane.setBackground(BACKGROUND_COLOR);
+
+        for (Carta c : controlador.getManoGanadora()) {
+            JButton button = new JButton();
+            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
+            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+            button.setIcon(new ImageIcon(imagenRedimensionada));
+            button.setBackground(BACKGROUND_COLOR);
+            button.setPreferredSize(buttonSize);
+            manoGanadoraPane.add(button);
+        }
+        finishPane.add(manoGanadoraPane);
+
+        // Espaciado entre la mano ganadora y los puntajes
+        finishPane.add(Box.createVerticalStrut(20));
+
+        // Mostrar puntajes finales de cada jugador
+        ArrayList<String> jugadores = controlador.nombreJugadores();
+        for (String jugador : jugadores) {
+            int puntos = controlador.getPuntaje(jugador);
+            String puntajeMensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
+            JLabel lblPuntaje = new JLabel(puntajeMensaje);
+            lblPuntaje.setFont(new Font("Arial", Font.BOLD, 24));
+            lblPuntaje.setForeground(Color.WHITE);
+            lblPuntaje.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+            finishPane.add(lblPuntaje);
+        }
+
+        // Espaciado entre los puntajes y el botón
+        finishPane.add(Box.createVerticalStrut(30));
 
         // Botón para cerrar el juego
         JButton btnCerrar = new JButton("Cerrar juego");
@@ -1215,6 +1286,7 @@ public class VistaGrafica implements IVista {
         // Mostrar el panel final
         cardLayout.show(cardPane, "finish-pane");
     }
+
 
     @Override
     public void actualizarMesa() {

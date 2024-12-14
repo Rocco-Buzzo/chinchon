@@ -95,36 +95,32 @@ public class Mano implements Serializable {
      * @return Si forman el juego de cartas con el mismo valor numérico.
      */
     private boolean iguales(int[] indices) {
-        if (indices.length == 3 || indices.length == 4) {
-            boolean hayComodin = false;
-            int valor = 0; // Valor en común entre todas las cartas para formar
+        if (indices.length < 3 || indices.length > 4) {
+            return false; // Solo se aceptan 3 o 4 cartas.
+        }
 
-            Carta c;
-            for (int indice : indices) {
-                c = cartas.get(indice);
+        boolean hayComodin = false;
+        Integer valorComun = null; // Valor numérico que deben compartir las cartas.
 
-                // La carta es un comodín?:
-                if (c.getPalo() == Palo.JOKER) {
-                    if (hayComodin) {
-                        // Solo se permite un (1) comodín por juego.
-                        return false;
-                    }
-                    hayComodin = true;
-                } else {
-                    if (valor == 0) {
-                        // Pongo el valor de la primer carta (no comodín) que encuentre.
-                        valor = c.getValor();
-                    } else {
-                        if (c.getValor() != valor) {
-                            return false;
-                        }
-                    }
+        for (int indice : indices) {
+            Carta carta = cartas.get(indice);
+
+            if (carta.getPalo() == Palo.JOKER) {
+                if (hayComodin) {
+                    return false; // Solo un comodín permitido.
+                }
+                hayComodin = true;
+            } else {
+                if (valorComun == null) {
+                    valorComun = carta.getValor(); // Asigna el primer valor no comodín.
+                } else if (carta.getValor() != valorComun) {
+                    return false; // Si algún valor no coincide, no hay juego.
                 }
             }
-            return true;
         }
-        return false;
+        return true;
     }
+
 
     /**
      * Indica si las cartas dadas (sus posiciones en la mano) tienen el mismo
@@ -135,53 +131,52 @@ public class Mano implements Serializable {
      * @return Si forman el juego de cartas con el mismo palo.
      */
     private boolean escalera(int[] indices) {
-        if (indices.length > 2 && indices.length < 8) {
-            // Agrego las cartas seleccionadas en un arreglo y los ordeno
-            ArrayList<Carta> tmp = new ArrayList<>(indices.length);
-            Carta c;
-            boolean hayComodin = false;
-
-            for (int indice : indices) {
-
-                c = cartas.get(indice);
-
-                // Filtro los comodines, si hay más de uno devuelvo falso:
-                if (c.getPalo() == Palo.JOKER) {
-                    if (hayComodin) {
-                        return false;
-                    }
-                    hayComodin = true;
-                } else {
-                    tmp.add(c);
-                }
-            }
-
-            c = tmp.getFirst();
-            // Palo en común que deben tener todas las cartas del juego:
-            Palo paloJuego = c.getPalo();
-            int valorAnt = c.getValor(),    // Valor de la carta anterior
-                    tmpSize = tmp.size();
-            boolean aplicaComodin = hayComodin;
-
-            for (int i = 1; i < tmpSize; i++) {
-                c = tmp.get(i);
-                if (c.getPalo() != paloJuego) {
-                    // Si el palo es distinto no hay juego
-                    return false;
-                }
-                if (c.getValor() != valorAnt + 1) {
-                    if (aplicaComodin && (c.getValor() == valorAnt + 2)) {
-                        aplicaComodin = false;
-                    } else {
-                        return false;
-                    }
-                }
-                valorAnt = c.getValor();
-            }
-            return true;
+        if (indices.length < 3 || indices.length > 7) {
+            return false; // Solo se aceptan entre 3 y 7 cartas.
         }
-        return false;
+
+        boolean hayComodin = false;
+        ArrayList<Carta> cartasSeleccionadas = new ArrayList<>();
+
+        // Filtrado y validación de comodines
+        for (int indice : indices) {
+            Carta carta = cartas.get(indice);
+            if (carta.getPalo() == Palo.JOKER) {
+                if (hayComodin) {
+                    return false; // Más de un comodín no es válido.
+                }
+                hayComodin = true;
+            } else {
+                cartasSeleccionadas.add(carta);
+            }
+        }
+
+        // Ordenar las cartas por su valor
+        cartasSeleccionadas.sort((c1, c2) -> Integer.compare(c1.getValor(), c2.getValor()));
+
+        Palo paloComun = cartasSeleccionadas.get(0).getPalo();
+        int valorAnterior = cartasSeleccionadas.get(0).getValor();
+
+        // Validación de la escalera
+        for (int i = 1; i < cartasSeleccionadas.size(); i++) {
+            Carta actual = cartasSeleccionadas.get(i);
+
+            if (actual.getPalo() != paloComun) {
+                return false; // Todas las cartas deben tener el mismo palo.
+            }
+
+            if (actual.getValor() != valorAnterior + 1) {
+                if (hayComodin && actual.getValor() == valorAnterior + 2) {
+                    hayComodin = false; // El comodín "completa" el salto.
+                } else {
+                    return false; // No es una escalera válida.
+                }
+            }
+            valorAnterior = actual.getValor();
+        }
+        return true;
     }
+
 
     /**
      * Indica si las cartas dadas forman, chinchon, dos grupos de tres o un grupo de tres cartas y otro de cuatro.
@@ -192,11 +187,11 @@ public class Mano implements Serializable {
         if (esChinchon()) {
             return true;
         } else {
-            if (verificarGrupos(3,4, false)) {
+            if (verificarGrupos(3, 4, false)) {
                 return true;
-            } else if (verificarGrupos(4,3, false)) {
+            } else if (verificarGrupos(4, 3, false)) {
                 return true;
-            } else return verificarGrupos(3,3, true);
+            } else return verificarGrupos(3, 3, true);
         }
     }
 
@@ -410,5 +405,17 @@ public class Mano implements Serializable {
 
     public void vaciar() {
         cartas.clear();
+    }
+
+    public ArrayList<Carta> getManoGanadora() {
+        ArrayList<Carta> manoGanadora = new ArrayList<>();
+        if ((esChinchon() || verificarGrupos(3, 4, false) || verificarGrupos(4, 3, false)) && cartas.size() == 7) {
+            manoGanadora.addAll(cartas);
+        } else if (verificarGrupos(3, 3, false)) {
+            for (int i = 0; i < 6; i++) {
+                manoGanadora.add(cartas.get(i));
+            }
+        }
+        return manoGanadora;
     }
 }

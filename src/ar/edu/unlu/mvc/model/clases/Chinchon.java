@@ -277,6 +277,11 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         return 0;
     }
 
+    @Override
+    public ArrayList<Carta> getManoGanadora() throws RemoteException {
+        return jugadorActual.getMano().getManoGanadora();
+    }
+
     /**
      * Funcion para robar una carta del Descarte.
      */
