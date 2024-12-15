@@ -1,6 +1,5 @@
 package ar.edu.unlu.mvc.model.clases;
 
-import ar.edu.unlu.mvc.controller.Controlador;
 import ar.edu.unlu.mvc.model.enumerates.EstadoPartida;
 import ar.edu.unlu.mvc.model.enumerates.Eventos;
 import ar.edu.unlu.mvc.model.interfaces.IChinchon;
@@ -28,7 +27,12 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     private EstadoPartida estadoPartida = EstadoPartida.ESTABLECIENDO;
 
     /**
-     * Funcion para Iniciar el juego.
+     * iniciarPartida()
+     * - Descripción:
+     * Inicia una nueva partida del juego, verificando que haya
+     * dos jugadores en la partida, creando el mazo, repartiendo
+     * cartas, asignando el estado de la partida a "JUGANDO" y
+     * notificando a los observadores del evento de inicio.
      */
     @Override
     public void iniciarPartida() throws RemoteException {
@@ -42,6 +46,16 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         }
     }
 
+    /**
+     * establecerValores(boolean contiene, int cantidad, int puntos)
+     * - Descripción: Configura los parámetros de la partida, como si
+     * el mazo contiene comodines, la cantidad de cartas iniciales, y
+     * los puntos máximos necesarios para ganar.
+     *
+     * @param contiene Contiene comodín o no.
+     * @param cantidad Cantidad de cartas del Mazo.
+     * @param puntos   Cantidad de puntos máximos de la partida.
+     */
     @Override
     public void establecerValores(boolean contiene, int cantidad, int puntos) {
         contieneComodin = contiene;
@@ -50,7 +64,10 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     /**
-     * Funcion que permite cargar una partida guardada.
+     * cargarPartida(String nombreArchivo)
+     * - Descripción: Carga una partida guardada desde un archivo específico,
+     * restaurando el estado del juego y notificando a los observadores.
+     * Devuelve true si la carga fue exitosa y false en caso contrario.
      *
      * @param nombreArchivo Partida guardada.
      * @return true si se puede cargar, en otro caso false.
@@ -78,7 +95,9 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     /**
-     * Funcion que permite guardar una partida. Se ingresa el nombre del archivo y se guarda la Instancia del juego actual.
+     * guardarPartida(String nombreArchivo, boolean guardar)
+     * - Descripción: Guarda el estado actual de la partida en un archivo si
+     * guardar es true, o cancela la operación notificando a los observadores.
      *
      * @param nombreArchivo - Nombre de la partida.
      */
@@ -87,13 +106,18 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         if (guardar) {
             Serializacion.guardarPartida(this, nombreArchivo);
             notificarObservadores(Eventos.PARTIDA_GUARDADA);
+            reset();
         } else {
             notificarObservadores(Eventos.PARTIDA_CANCELADA);
+            reset();
         }
     }
 
     /**
-     * Funcion que le permite al cerrar la ronda actual.
+     * cerrarRonda()
+     * - Descripción: Finaliza la ronda actual si el jugador puede cerrar, calcula
+     * puntajes para los jugadores y determina si la partida debe terminar
+     * o continuar.
      */
     @Override
     public void cerrarRonda() throws RemoteException {
@@ -103,7 +127,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             calcularPuntajePerdedor(jugadores.getFondo()); // Perdedor
             if (puedeTerminar()) {
                 terminarPartida();
-                notificarObservadores(Eventos.PARTIDA_TERMINADA);
+                reset();
             } else {
                 estadoPartida = EstadoPartida.JUGANDO;
                 notificarObservadores(Eventos.RONDA_TERMINADA);
@@ -113,7 +137,10 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     /**
-     * Funcion que permite continuar la partida.
+     * continuarPartida()
+     * - Descripción: Reinicia el juego para una nueva ronda, limpiando
+     * las cartas de los jugadores, el mazo y el descarte, y repartiendo
+     * nuevas cartas.
      */
     @Override
     public void continuarPartida() throws RemoteException {
@@ -131,6 +158,12 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         descarte.apilar(mazo.sacar());
     }
 
+    /**
+     * nombreJugadores()
+     *
+     * @return Devuelve una lista con los nombres de los jugadores
+     * que participan en la partida.
+     */
     @Override
     public ArrayList<String> nombreJugadores() throws RemoteException {
         ArrayList<String> players = new ArrayList<>();
@@ -145,34 +178,24 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         return players;
     }
 
-    private void vaciarCartas() {
-        for (int i = 0; i < jugadores.size(); i++) {
-            Jugador jAux;
-            jugadores.getFrente().vaciarCartas();
-            jAux = jugadores.desencolar();
-            jugadores.encolar(jAux);
-        }
-    }
-
+    /**
+     * intercambiarCartas(int n, int m, String jugador)
+     * Permite a un jugador intercambiar dos cartas en su mano,
+     * identificadas por sus posiciones n y m.
+     *
+     * @param n       Posición 1.
+     * @param m       Posición 2.
+     * @param jugador Jugador que realiza el intercambio.
+     */
     @Override
     public void intercambiarCartas(int n, int m, String jugador) throws RemoteException {
         getJugador(jugador).getMano().intercambiarCartas(n, m);
     }
 
     /**
-     * Funcion para girar el mazo, cuando no haya mas cartas en el mazo apilamos todas las cartas del descarte y la ponemos en el mazo.
-     */
-    private void girarMazo() {
-        if (mazo.getSize() == 0) {
-            while (descarte.getTope() != null) {
-                mazo.apilar(descarte.desapilar());
-            }
-            descarte.apilar(mazo.sacar());
-        }
-    }
-
-    /**
-     * Funcion para agregar un jugador, a partir de un nombre, crea un nuevo jugador con ese nombre y lo agrega a la partida.
+     * agregarJugador(String name)
+     * - Descripción: Agrega un nuevo jugador con el nombre dado si la partida está en el
+     * estado de configuración y no existe un jugador con el mismo nombre.
      *
      * @param name Nombre del nuevo jugador.
      */
@@ -192,7 +215,9 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     /**
-     * Funcion que cambia el turno del jugador.
+     * cambiarJugador()
+     * - Descripción: Cambia el turno al siguiente jugador en la
+     * cola y notifica a los observadores del cambio de turno.
      */
     @Override
     public void cambiarJugador() throws RemoteException {
@@ -210,7 +235,9 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     /**
-     * Funcion que permite tirar una carta, recibe un numero como parametro y tira la carta que corresponde.
+     * tirarCarta(int numero)
+     * - Descripción: Permite al jugador actual descartar una carta de su mano,
+     * identificada por su posición, y pasa el turno al siguiente jugador.
      *
      * @param numero Posicion de la carta en la mano.
      */
@@ -346,11 +373,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     @Override
-    public void agregarObs(Controlador controlador) throws RemoteException {
-        agregarObservador(controlador);
-    }
-
-    @Override
     public int getPuntosMaximos() {
         return puntosMaximos;
     }
@@ -381,10 +403,45 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         }
     }
 
+    private void vaciarCartas() {
+        for (int i = 0; i < jugadores.size(); i++) {
+            Jugador jAux;
+            jugadores.getFrente().vaciarCartas();
+            jAux = jugadores.desencolar();
+            jugadores.encolar(jAux);
+        }
+    }
+
+    /**
+     * Funcion para girar el mazo, cuando no haya mas cartas en el mazo apilamos todas las cartas del descarte y la ponemos en el mazo.
+     */
+    private void girarMazo() throws RemoteException {
+        if (mazo.getSize() == 0) {
+            while (descarte.getTope() != null) {
+                mazo.apilar(descarte.desapilar());
+            }
+            descarte.apilar(mazo.sacar());
+        }
+    }
+
+    private void reset() throws RemoteException {
+        mazo = null;
+        descarte = new Descarte();
+        jugadores = new Cola<>();
+        jugadorActual = null;
+        ganador = new Jugador("");
+        top = new Top();
+        puntosMaximos = 0;
+        cantidadRondas = 1;
+        contieneComodin = false;
+        cantCartas = 0;
+        estadoPartida = EstadoPartida.ESTABLECIENDO;
+    }
+
     /**
      * Funcion auxiliar para repartir cartas.
      */
-    private void repartir() {
+    private void repartir() throws RemoteException {
         for (int i = 0; i < 7; i++) { // Repartir 7 cartas a cada jugador
             Jugador actual; // Obtener el primer jugador
 
@@ -399,7 +456,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     /**
      * Funcion auxiliar para sortear el turno.
      */
-    private void sortearTurno() {
+    private void sortearTurno() throws RemoteException {
         Random random = new Random();
         int rotaciones = random.nextInt(jugadores.size());
         for (int i = 0; i < rotaciones; i++) {
@@ -411,7 +468,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     /**
      * Funcion que permite calcular puntaje de un jugador en especifico.
      */
-    private void calcularPuntaje(Jugador jugador) {
+    private void calcularPuntaje(Jugador jugador) throws RemoteException {
         int suma = jugador.getMano().calcularPuntajeGanador();
         jugador.aumentarPuntuacion(suma);
     }
@@ -421,7 +478,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      *
      * @param jugador Jugador que perdio
      */
-    private void calcularPuntajePerdedor(Jugador jugador) {
+    private void calcularPuntajePerdedor(Jugador jugador) throws RemoteException {
         int suma = jugador.getMano().calcularPuntajePerdedor();
         jugador.aumentarPuntuacion(suma);
     }
@@ -431,7 +488,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      *
      * @return true si alguno de los jugadores tiene un puntaje mayor o igual a la puntuación máxima, false en caso contrario.
      */
-    private boolean puedeTerminar() {
+    private boolean puedeTerminar() throws RemoteException {
         Jugador actual = jugadores.getFrente(); // Itera desde el frente de la cola
         for (int i = 0; i < jugadores.size(); i++) {
             if (actual.getPuntaje() >= puntosMaximos) {
@@ -441,7 +498,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         }
         return false; // Ningún jugador supera el límite
     }
-
 
     /**
      * Funcion para finalizar la partida. En el caso de que cualquiera de los jugadores tenga

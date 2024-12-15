@@ -1,6 +1,5 @@
 package ar.edu.unlu.mvc.model.interfaces;
 
-import ar.edu.unlu.mvc.controller.Controlador;
 import ar.edu.unlu.mvc.model.clases.*;
 import ar.edu.unlu.mvc.model.enumerates.EstadoPartida;
 import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
@@ -54,8 +53,6 @@ public interface IChinchon extends Serializable, IObservableRemoto {
     Descarte getDescarte() throws RemoteException;
 
     Carta getTopeDescarte() throws RemoteException;
-
-    void agregarObs(Controlador controlador) throws RemoteException;
 
     int getPuntosMaximos() throws RemoteException;
 

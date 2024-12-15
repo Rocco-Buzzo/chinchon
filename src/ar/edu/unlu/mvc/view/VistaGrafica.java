@@ -31,6 +31,231 @@ public class VistaGrafica implements IVista {
     private final int FRAME_WIDTH = screenSize.width - screenInsets.left - screenInsets.right;
     private final int FRAME_HEIGHT = screenSize.height - screenInsets.top - screenInsets.bottom;
 
+    @Override
+    public void setControlador(Controlador controlador) {
+        this.controlador = controlador;
+    }
+
+    @Override
+    public void cerrarRonda() {
+        JPanel cerrarPane = jPanelMap.get("cerrar-pane");
+        cerrarPane.removeAll();
+        cerrarPane.setLayout(new BoxLayout(cerrarPane, BoxLayout.Y_AXIS)); // Layout en columna
+        cerrarPane.setBackground(BACKGROUND_COLOR);
+
+        ArrayList<String> jugadores = controlador.nombreJugadores();
+
+        // Mensaje de fin de ronda
+        JLabel rondaTerminada = new JLabel("¡Ronda terminada!");
+        rondaTerminada.setFont(new Font("Arial", Font.BOLD, 32));
+        rondaTerminada.setForeground(Color.YELLOW);
+        rondaTerminada.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        cerrarPane.add(rondaTerminada);
+
+        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio entre elementos
+        JLabel ganador = new JLabel("Ganador: " + controlador.getJugadorActual());
+        ganador.setFont(new Font("Arial", Font.BOLD, 24));
+        ganador.setForeground(Color.WHITE);
+        ganador.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        cerrarPane.add(ganador);
+        JLabel manoGanadora = new JLabel("Mano ganadora: ");
+        manoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
+        manoGanadora.setForeground(Color.WHITE);
+        manoGanadora.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        cerrarPane.add(manoGanadora);
+
+        Dimension buttonSize = new Dimension(113, 200);
+
+        JPanel manoGanadoraPane = new JPanel(new FlowLayout());
+        manoGanadoraPane.setBackground(BACKGROUND_COLOR);
+        for (Carta c : controlador.getManoGanadora()) {
+            JButton button = new JButton();
+            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
+            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+            button.setIcon(new ImageIcon(imagenRedimensionada));
+            button.setBackground(BACKGROUND_COLOR);
+            button.setPreferredSize(buttonSize);
+            manoGanadoraPane.add(button);
+        }
+        cerrarPane.add(manoGanadoraPane);
+
+        // Mostrar los puntajes
+        for (String jugador : jugadores) {
+            int puntos = controlador.getPuntaje(jugador);
+            String mensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
+            JLabel puntajes = new JLabel(mensaje);
+            puntajes.setFont(new Font("Arial", Font.BOLD, 24));
+            puntajes.setForeground(Color.WHITE);
+            puntajes.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+            cerrarPane.add(puntajes);
+        }
+
+        cerrarPane.add(Box.createVerticalStrut(30)); // Espacio entre los puntajes y el botón
+
+        // Panel para el botón y el contador de jugadores listos
+        JPanel readyPanel = new JPanel(new FlowLayout());
+        readyPanel.setBackground(BACKGROUND_COLOR);
+
+        JLabel readyLabel = new JLabel("Jugadores listos: 0/" + jugadores.size());
+        readyLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        readyLabel.setForeground(Color.WHITE);
+
+        JButton btnContinuar = new JButton("Continuar");
+        btnContinuar.setFont(new Font("Arial", Font.BOLD, 18));
+        btnContinuar.setPreferredSize(new Dimension(200, 50));
+        btnContinuar.setBackground(new Color(135, 255, 75));
+        btnContinuar.setForeground(Color.BLACK);
+
+        // Lógica del botón para actualizar el contador y verificar la condición
+        final int[] jugadoresListos = {0}; // Contador de jugadores listos
+        btnContinuar.addActionListener(_ -> {
+            jugadoresListos[0]++;
+            readyLabel.setText("Jugadores listos: " + jugadoresListos[0] + "/" + jugadores.size());
+
+            if (jugadoresListos[0] == jugadores.size() / 2) {
+                iniciarTurnos(); // Llamar a la función iniciarTurnos cuando haya 2 listos
+            }
+        });
+
+        readyPanel.add(btnContinuar);
+        readyPanel.add(readyLabel);
+        cerrarPane.add(readyPanel);
+        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio final
+
+        cerrarPane.revalidate();
+        cerrarPane.repaint();
+        // Actualizar el panel principal
+        cardLayout.show(cardPane, "cerrar-pane");
+    }
+
+    // Funciona
+    @Override
+    public void openGame() {
+        chinchonFrame.repaint();
+        chinchonFrame.revalidate();
+        initMenu();
+        if (controlador.getJugadoresSize() == 2) {
+            renderMenu();
+        } else {
+            playerLogin();
+        }
+    }
+
+    // Funciona
+    @Override
+    public void startGame() {
+        controlador.iniciarPartida();
+        iniciarTurnos();
+    }
+
+    @Override
+    public void loadGame() {
+        controlador.continuarPartida();
+        iniciarTurnos();
+    }
+
+    @Override
+    public void setJugador(String nombre) {
+        this.nombreJugador = nombre;
+    }
+
+    // Funciona correctamente
+    @Override
+    public void iniciarTurnos() {
+        if (nombreJugador.equals(controlador.getJugadorActual())) {
+            renderInGame();
+        } else {
+            renderWaitingTurn();
+        }
+    }
+
+    @Override
+    public void finishGame(boolean guardado) {
+        JPanel finishPane = jPanelMap.get("finish-pane");
+        finishPane.removeAll();
+        finishPane.setLayout(new GridBagLayout()); // Usar GridBagLayout para centrar
+        finishPane.setBackground(BACKGROUND_COLOR); // Fondo azul oscuro
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 0, 10, 0); // Espaciado entre componentes
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        // Mensaje del estado de la partida
+        String mensaje = (controlador.getGanador() != null && !controlador.getGanador().isEmpty())
+                ? "¡La partida ha finalizado! Ganador: " + controlador.getGanador()
+                : "Partida cancelada.";
+
+        if (guardado) {
+            mensaje = "Partida guardada correctamente.";
+        }
+
+        JLabel lblMensaje = new JLabel(mensaje);
+        lblMensaje.setFont(new Font("Arial", Font.BOLD, 24));
+        lblMensaje.setForeground(Color.WHITE);
+        finishPane.add(lblMensaje, gbc);
+
+        // Mostrar la mano ganadora solo si no se guardó la partida y no fue cancelada
+        if (!guardado && controlador.getGanador() != null && !controlador.getGanador().isEmpty()) {
+            gbc.gridy++; // Mover a la siguiente fila
+            JLabel lblManoGanadora = new JLabel("Mano ganadora:");
+            lblManoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
+            lblManoGanadora.setForeground(Color.WHITE);
+            finishPane.add(lblManoGanadora, gbc);
+
+            gbc.gridy++; // Mover a la siguiente fila
+            JPanel manoGanadoraPane = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+            manoGanadoraPane.setBackground(BACKGROUND_COLOR);
+
+            Dimension buttonSize = new Dimension(113, 200);
+            for (Carta c : controlador.getManoGanadora()) {
+                JButton button = new JButton();
+                ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
+                Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+                button.setIcon(new ImageIcon(imagenRedimensionada));
+                button.setBackground(BACKGROUND_COLOR);
+                button.setPreferredSize(buttonSize);
+                manoGanadoraPane.add(button);
+            }
+            finishPane.add(manoGanadoraPane, gbc);
+        }
+
+        // Mostrar puntajes finales de cada jugador
+        ArrayList<String> jugadores = controlador.nombreJugadores();
+        for (String jugador : jugadores) {
+            gbc.gridy++; // Mover a la siguiente fila
+            int puntos = controlador.getPuntaje(jugador);
+            String puntajeMensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
+            JLabel lblPuntaje = new JLabel(puntajeMensaje);
+            lblPuntaje.setFont(new Font("Arial", Font.BOLD, 24));
+            lblPuntaje.setForeground(Color.WHITE);
+            finishPane.add(lblPuntaje, gbc);
+        }
+
+        // Botón para cerrar el juego
+        gbc.gridy++; // Mover a la siguiente fila
+        JButton btnCerrar = new JButton("Cerrar juego");
+        btnCerrar.setFont(new Font("Arial", Font.PLAIN, 18));
+        btnCerrar.setBackground(new Color(94, 180, 70));
+        btnCerrar.setForeground(Color.WHITE);
+        btnCerrar.setFocusPainted(false);
+        btnCerrar.addActionListener(_ -> System.exit(0));
+        finishPane.add(btnCerrar, gbc);
+
+        // Refrescar el panel
+        finishPane.revalidate();
+        finishPane.repaint();
+
+        // Mostrar el panel final
+        cardLayout.show(cardPane, "finish-pane");
+    }
+
+    @Override
+    public void actualizarMesa() {
+        iniciarTurnos();
+    }
+
     private void initMenu() {
         cardLayout = new CardLayout();
         chinchonFrame.setLayout(cardLayout);
@@ -91,26 +316,32 @@ public class VistaGrafica implements IVista {
         chinchonFrame.setTitle("Chinchón");
         JPanel menu = jPanelMap.get("menu-pane");
         menu.removeAll();
-        menu.setLayout(new BorderLayout());
+        menu.setLayout(new GridBagLayout()); // Cambiamos a GridBagLayout para centrar
         menu.setBackground(BACKGROUND_COLOR);
 
-        // Panel del titulo del juego
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        // Panel del título del juego
         JPanel imagePane = new ImagePanel(getClass().getClassLoader().getResource(IMAGES_PATH + "titulo.png"));
-        imagePane.setPreferredSize(new Dimension(108, 192));
+        imagePane.setPreferredSize(new Dimension(1024, 108));
         imagePane.setBackground(BACKGROUND_COLOR);
 
         // Panel para los botones
         JPanel btnPane = new JPanel(new GridBagLayout());
         btnPane.setBackground(BACKGROUND_COLOR);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        GridBagConstraints btnGbc = new GridBagConstraints();
+        btnGbc.gridx = 0;
+        btnGbc.gridy = 0;
+        btnGbc.insets = new Insets(10, 10, 10, 10);
 
         Dimension buttonSize = new Dimension(350, 65);
 
-        // Boton para iniciar la partida
+        // Botón para iniciar la partida
         JButton btnStart = new JButton();
         btnStart.setFont(new Font("Arial", Font.BOLD, 24));
         btnStart.setText("Iniciar Partida");
@@ -137,7 +368,6 @@ public class VistaGrafica implements IVista {
             }
         });
 
-        // Boton para cargar una partida
         JButton btnLoad = new JButton();
         btnLoad.setFont(new Font("Arial", Font.BOLD, 24));
         btnLoad.setText("Cargar Partida");
@@ -146,7 +376,6 @@ public class VistaGrafica implements IVista {
         btnLoad.setForeground(Color.WHITE);
         btnLoad.addActionListener(_ -> renderLoadGame());
 
-        // Boton para ver las reglas
         JButton btnRules = new JButton();
         btnRules.setFont(new Font("Arial", Font.BOLD, 24));
         btnRules.setText("Reglas");
@@ -155,7 +384,6 @@ public class VistaGrafica implements IVista {
         btnRules.setForeground(Color.WHITE);
         btnRules.addActionListener(_ -> renderRules());
 
-        // Boton para salir del juego
         JButton btnQuit = new JButton();
         btnQuit.setFont(new Font("Arial", Font.BOLD, 24));
         btnQuit.setText("Salir");
@@ -167,27 +395,34 @@ public class VistaGrafica implements IVista {
             cardLayout.show(cardPane, "login-pane");
         });
 
-        gbc.gridy = 0;
-        btnPane.add(btnStart, gbc);
-        gbc.gridy = 1;
-        btnPane.add(btnLoad, gbc); // Agregar botón de cargar partida
-        gbc.gridy = 2;
-        btnPane.add(btnJoin, gbc); // Agregar botón de ver ranking
-        gbc.gridy = 3;
-        btnPane.add(btnRules, gbc); // Agregar botón de salir
-        gbc.gridy = 4;
-        btnPane.add(btnQuit, gbc); // Agregar botón de salir
+        // Agregar los botones al panel de botones
+        btnPane.add(btnStart, btnGbc);
+        btnGbc.gridy++;
+        btnPane.add(btnLoad, btnGbc);
+        btnGbc.gridy++;
+        btnPane.add(btnJoin, btnGbc);
+        btnGbc.gridy++;
+        btnPane.add(btnRules, btnGbc);
+        btnGbc.gridy++;
+        btnPane.add(btnQuit, btnGbc);
 
+        // Texto del jugador actual
         JLabel player = new JLabel();
-        player.setText("Estas jugando como: " + this.nombreJugador);
+        player.setText("Estás jugando como: " + this.nombreJugador);
         player.setBackground(BACKGROUND_COLOR);
         player.setForeground(Color.WHITE);
         player.setFont(new Font("Arial", Font.BOLD, 16));
         player.setHorizontalAlignment(JLabel.CENTER);
 
-        menu.add(imagePane, BorderLayout.NORTH);
-        menu.add(btnPane, BorderLayout.CENTER);
-        menu.add(player, BorderLayout.SOUTH);
+        // Agregar componentes al panel principal centrado
+        gbc.gridy = 0;
+        menu.add(imagePane, gbc);
+        gbc.gridy = 1;
+        menu.add(btnPane, gbc);
+        gbc.gridy = 2;
+        menu.add(player, gbc);
+
+        // Actualizar y mostrar el panel
         menu.repaint();
         menu.revalidate();
         cardLayout.show(cardPane, "menu-pane");
@@ -279,7 +514,6 @@ public class VistaGrafica implements IVista {
         cardLayout.show(cardPane, "load-pane");
     }
 
-    // Funciona correctamente
     private void renderSettings() {
         chinchonFrame.setTitle("Reglas del Chinchón");
         chinchonFrame.setLocationRelativeTo(null);
@@ -288,85 +522,56 @@ public class VistaGrafica implements IVista {
         settings.removeAll();
         settings.repaint();
         settings.revalidate();
-        settings.setLayout(new BorderLayout());
+        settings.setLayout(new GridBagLayout()); // Layout para centrar
         settings.setBackground(BACKGROUND_COLOR);
 
+        // Logo - Panel de imagen
         JPanel imagePane = new ImagePanel(getClass().getClassLoader().getResource(IMAGES_PATH + "titulo.png"));
-        imagePane.setPreferredSize(new Dimension(108, 192));
+        imagePane.setPreferredSize(new Dimension(1024, 108)); // Ajusta el tamaño más grande
         imagePane.setBackground(BACKGROUND_COLOR);
 
+        // Panel de configuración
         JPanel settingsPane = new JPanel(new GridBagLayout());
         settingsPane.setBackground(BACKGROUND_COLOR);
 
-        chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
-        chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
-        chinchonFrame.setLocationRelativeTo(null);
-        chinchonFrame.setTitle("Chinchon - Settings");
-
-        JLabel cartasOption = new JLabel();
-        cartasOption.setBackground(BACKGROUND_COLOR);
+        // Opciones
+        JLabel cartasOption = new JLabel("CANTIDAD DE CARTAS", JLabel.CENTER);
         cartasOption.setForeground(Color.WHITE);
         cartasOption.setFont(new Font("Arial", Font.BOLD, 24));
-        cartasOption.setHorizontalAlignment(JLabel.CENTER);
-        cartasOption.setText("CANTIDAD DE CARTAS");
 
         String[] cartasBoxItems = {"40", "48"};
         JComboBox<String> cartasBox = new JComboBox<>(cartasBoxItems);
         cartasBox.setFont(new Font("Arial", Font.BOLD, 16));
         cartasBox.setPreferredSize(new Dimension(100, 25));
-        cartasBox.setSelectedItem("40");
 
-        // Contiene comodin
-        JLabel comodinOption = new JLabel();
-        comodinOption.setBackground(BACKGROUND_COLOR);
+        JLabel comodinOption = new JLabel("COMODINES", JLabel.CENTER);
         comodinOption.setForeground(Color.WHITE);
         comodinOption.setFont(new Font("Arial", Font.BOLD, 24));
-        comodinOption.setHorizontalAlignment(JLabel.CENTER);
-        comodinOption.setText("COMODINES");
 
         String[] comodinBoxItems = {"No", "Si"};
         JComboBox<String> comodinBox = new JComboBox<>(comodinBoxItems);
         comodinBox.setFont(new Font("Arial", Font.BOLD, 16));
         comodinBox.setPreferredSize(new Dimension(100, 25));
-        comodinBox.setSelectedItem("No");
 
-        // Puntos maximos
-        JLabel puntosOption = new JLabel();
-        puntosOption.setBackground(BACKGROUND_COLOR);
+        JLabel puntosOption = new JLabel("PUNTOS MÁXIMOS", JLabel.CENTER);
         puntosOption.setForeground(Color.WHITE);
         puntosOption.setFont(new Font("Arial", Font.BOLD, 24));
-        puntosOption.setHorizontalAlignment(JLabel.CENTER);
-        puntosOption.setText("PUNTOS MÁXIMOS");
 
         String[] puntosBoxItems = {"50", "100"};
         JComboBox<String> puntosBox = new JComboBox<>(puntosBoxItems);
         puntosBox.setFont(new Font("Arial", Font.BOLD, 16));
         puntosBox.setPreferredSize(new Dimension(100, 25));
-        puntosBox.setSelectedItem("50");
 
-        JButton btnAccept = new JButton();
+        JButton btnAccept = new JButton("Aceptar");
         btnAccept.setFont(new Font("Arial", Font.BOLD, 18));
-        btnAccept.setText("Aceptar");
         btnAccept.setPreferredSize(new Dimension(150, 50));
-        btnAccept.setBackground(new Color(36, 184, 97, 255));
+        btnAccept.setBackground(new Color(36, 184, 97));
         btnAccept.setForeground(Color.WHITE);
         btnAccept.addActionListener(_ -> {
-            int cantidadCartas;
-            int puntosMaximos;
-            boolean contieneComodin = true;
-            if (Objects.equals(cartasBox.getSelectedItem(), "40")) {
-                cantidadCartas = 40;
-            } else {
-                cantidadCartas = 48;
-            }
-            if (Objects.equals(comodinBox.getSelectedItem(), "No")) {
-                contieneComodin = false;
-            }
-            if (Objects.equals(puntosBox.getSelectedItem(), "50")) {
-                puntosMaximos = 50;
-            } else {
-                puntosMaximos = 100;
-            }
+            int cantidadCartas = Objects.equals(cartasBox.getSelectedItem(), "40") ? 40 : 48;
+            boolean contieneComodin = !Objects.equals(comodinBox.getSelectedItem(), "No");
+            int puntosMaximos = Objects.equals(puntosBox.getSelectedItem(), "50") ? 50 : 100;
+
             controlador.establecerValores(contieneComodin, cantidadCartas, puntosMaximos);
             controlador.agregarJugador(nombreJugador);
             if (controlador.getJugadoresSize() == 1) {
@@ -376,19 +581,19 @@ public class VistaGrafica implements IVista {
             }
         });
 
-        JButton btnBack = new JButton();
+        JButton btnBack = new JButton("Volver");
         btnBack.setFont(new Font("Arial", Font.BOLD, 18));
-        btnBack.setText("Volver");
         btnBack.setPreferredSize(new Dimension(150, 50));
-        btnBack.setBackground(new Color(255, 60, 60, 255));
+        btnBack.setBackground(new Color(255, 60, 60));
         btnBack.setForeground(Color.WHITE);
         btnBack.addActionListener(_ -> cardLayout.show(cardPane, "menu-pane"));
 
+        // Agregar componentes al settingsPane con GridBagConstraints
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0; // Columna 0
-        gbc.gridy = 0; // Fila 0
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.gridx = 0;
+        gbc.insets = new Insets(10, 0, 10, 0);
 
+        gbc.gridy = 0;
         settingsPane.add(cartasOption, gbc);
         gbc.gridy = 1;
         settingsPane.add(cartasBox, gbc);
@@ -405,8 +610,15 @@ public class VistaGrafica implements IVista {
         gbc.gridy = 7;
         settingsPane.add(btnBack, gbc);
 
-        settings.add(imagePane, BorderLayout.NORTH);
-        settings.add(settingsPane, BorderLayout.CENTER);
+        // Centrar el logo y el settingsPane en el panel principal
+        GridBagConstraints mainGbc = new GridBagConstraints();
+        mainGbc.gridx = 0;
+        mainGbc.gridy = 0;
+        mainGbc.insets = new Insets(0, 0, 20, 0); // Espaciado
+        settings.add(imagePane, mainGbc);
+
+        mainGbc.gridy = 1;
+        settings.add(settingsPane, mainGbc);
 
         cardLayout.show(cardPane, "settings-pane");
     }
@@ -845,7 +1057,7 @@ public class VistaGrafica implements IVista {
         esperando.revalidate();
         cardLayout.show(cardPane, "esperando-pane");
     }
-    
+
     private void renderExitGame() {
         chinchonFrame.setTitle("Chinchón - Guardar Partida");
 
@@ -855,7 +1067,6 @@ public class VistaGrafica implements IVista {
         guardarPane.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10); // Espaciado entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
         gbc.gridy = GridBagConstraints.RELATIVE;
         gbc.weightx = 1.0;
@@ -1058,239 +1269,8 @@ public class VistaGrafica implements IVista {
         System.exit(0);
     }
 
-    @Override
-    public void setControlador(Controlador controlador) {
-        this.controlador = controlador;
-    }
-
-    @Override
-    public void cerrarRonda() {
-        JPanel cerrarPane = jPanelMap.get("cerrar-pane");
-        cerrarPane.removeAll();
-        cerrarPane.setLayout(new BoxLayout(cerrarPane, BoxLayout.Y_AXIS)); // Layout en columna
-        cerrarPane.setBackground(BACKGROUND_COLOR);
-
-        ArrayList<String> jugadores = controlador.nombreJugadores();
-
-        // Mensaje de fin de ronda
-        JLabel rondaTerminada = new JLabel("¡Ronda terminada!");
-        rondaTerminada.setFont(new Font("Arial", Font.BOLD, 32));
-        rondaTerminada.setForeground(Color.YELLOW);
-        rondaTerminada.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        cerrarPane.add(rondaTerminada);
-
-        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio entre elementos
-        JLabel ganador = new JLabel("Ganador: " + controlador.getJugadorActual());
-        ganador.setFont(new Font("Arial", Font.BOLD, 24));
-        ganador.setForeground(Color.WHITE);
-        ganador.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        cerrarPane.add(ganador);
-        JLabel manoGanadora = new JLabel("Mano ganadora: ");
-        manoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
-        manoGanadora.setForeground(Color.WHITE);
-        manoGanadora.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        cerrarPane.add(manoGanadora);
-
-        Dimension buttonSize = new Dimension(113, 200);
-
-        JPanel manoGanadoraPane = new JPanel(new FlowLayout());
-        manoGanadoraPane.setBackground(BACKGROUND_COLOR);
-        for (Carta c : controlador.getManoGanadora()) {
-            JButton button = new JButton();
-            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
-            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
-            button.setIcon(new ImageIcon(imagenRedimensionada));
-            button.setBackground(BACKGROUND_COLOR);
-            button.setPreferredSize(buttonSize);
-            manoGanadoraPane.add(button);
-        }
-        cerrarPane.add(manoGanadoraPane);
-
-        // Mostrar los puntajes
-        for (String jugador : jugadores) {
-            int puntos = controlador.getPuntaje(jugador);
-            String mensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
-            JLabel puntajes = new JLabel(mensaje);
-            puntajes.setFont(new Font("Arial", Font.BOLD, 24));
-            puntajes.setForeground(Color.WHITE);
-            puntajes.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-            cerrarPane.add(puntajes);
-        }
-
-        cerrarPane.add(Box.createVerticalStrut(30)); // Espacio entre los puntajes y el botón
-
-        // Panel para el botón y el contador de jugadores listos
-        JPanel readyPanel = new JPanel(new FlowLayout());
-        readyPanel.setBackground(BACKGROUND_COLOR);
-
-        JLabel readyLabel = new JLabel("Jugadores listos: 0/" + jugadores.size());
-        readyLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        readyLabel.setForeground(Color.WHITE);
-
-        JButton btnContinuar = new JButton("Continuar");
-        btnContinuar.setFont(new Font("Arial", Font.BOLD, 18));
-        btnContinuar.setPreferredSize(new Dimension(200, 50));
-        btnContinuar.setBackground(new Color(135, 255, 75));
-        btnContinuar.setForeground(Color.BLACK);
-
-        // Lógica del botón para actualizar el contador y verificar la condición
-        final int[] jugadoresListos = {0}; // Contador de jugadores listos
-        btnContinuar.addActionListener(_ -> {
-            jugadoresListos[0]++;
-            readyLabel.setText("Jugadores listos: " + jugadoresListos[0] + "/" + jugadores.size());
-
-            if (jugadoresListos[0] == jugadores.size() / 2) {
-                iniciarTurnos(); // Llamar a la función iniciarTurnos cuando haya 2 listos
-            }
-        });
-
-        readyPanel.add(btnContinuar);
-        readyPanel.add(readyLabel);
-        cerrarPane.add(readyPanel);
-        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio final
-
-        cerrarPane.revalidate();
-        cerrarPane.repaint();
-        // Actualizar el panel principal
-        cardLayout.show(cardPane, "cerrar-pane");
-    }
-
-    // Funciona
-    @Override
-    public void openGame() {
-        chinchonFrame.repaint();
-        chinchonFrame.revalidate();
-        initMenu();
-        if (controlador.getJugadoresSize() == 2) {
-            renderMenu();
-        } else {
-            playerLogin();
-        }
-    }
-
-    // Funciona
-    @Override
-    public void startGame() {
-        controlador.iniciarPartida();
-        iniciarTurnos();
-    }
-
-    @Override
-    public void loadGame() {
-        controlador.continuarPartida();
-        iniciarTurnos();
-    }
-
-    @Override
-    public void setJugador(String nombre) {
-        this.nombreJugador = nombre;
-    }
-
     private void deleteJugador() {
         this.nombreJugador = null;
-    }
-
-    // Funciona correctamente
-    @Override
-    public void iniciarTurnos() {
-        if (nombreJugador.equals(controlador.getJugadorActual())) {
-            renderInGame();
-        } else {
-            renderWaitingTurn();
-        }
-    }
-
-    @Override
-    public void finishGame(boolean guardado) {
-        JPanel finishPane = jPanelMap.get("finish-pane");
-        finishPane.removeAll();
-        finishPane.setLayout(new BoxLayout(finishPane, BoxLayout.Y_AXIS));
-        finishPane.setBackground(BACKGROUND_COLOR); // Fondo azul oscuro
-
-        // Mensaje del estado de la partida
-        String mensaje = (controlador.getGanador() != null && !controlador.getGanador().isEmpty())
-                ? "¡La partida ha finalizado! Ganador: " + controlador.getGanador()
-                : "Partida cancelada.";
-
-        if (guardado) {
-            mensaje = "Partida guardada correctamente.";
-        }
-
-        JLabel lblMensaje = new JLabel(mensaje);
-        lblMensaje.setFont(new Font("Arial", Font.BOLD, 24));
-        lblMensaje.setForeground(Color.WHITE);
-        lblMensaje.setAlignmentX(Component.CENTER_ALIGNMENT);
-        finishPane.add(Box.createVerticalGlue()); // Espaciado para centrar verticalmente
-        finishPane.add(lblMensaje);
-
-        // Espaciado entre elementos
-        finishPane.add(Box.createVerticalStrut(20));
-
-        // Mostrar la mano ganadora
-        JLabel lblManoGanadora = new JLabel("Mano ganadora:");
-        lblManoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
-        lblManoGanadora.setForeground(Color.WHITE);
-        lblManoGanadora.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        finishPane.add(lblManoGanadora);
-
-        // Panel para mostrar las cartas de la mano ganadora
-        Dimension buttonSize = new Dimension(113, 200);
-        JPanel manoGanadoraPane = new JPanel(new FlowLayout());
-        manoGanadoraPane.setBackground(BACKGROUND_COLOR);
-
-        for (Carta c : controlador.getManoGanadora()) {
-            JButton button = new JButton();
-            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
-            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
-            button.setIcon(new ImageIcon(imagenRedimensionada));
-            button.setBackground(BACKGROUND_COLOR);
-            button.setPreferredSize(buttonSize);
-            manoGanadoraPane.add(button);
-        }
-        finishPane.add(manoGanadoraPane);
-
-        // Espaciado entre la mano ganadora y los puntajes
-        finishPane.add(Box.createVerticalStrut(20));
-
-        // Mostrar puntajes finales de cada jugador
-        ArrayList<String> jugadores = controlador.nombreJugadores();
-        for (String jugador : jugadores) {
-            int puntos = controlador.getPuntaje(jugador);
-            String puntajeMensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
-            JLabel lblPuntaje = new JLabel(puntajeMensaje);
-            lblPuntaje.setFont(new Font("Arial", Font.BOLD, 24));
-            lblPuntaje.setForeground(Color.WHITE);
-            lblPuntaje.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-            finishPane.add(lblPuntaje);
-        }
-
-        // Espaciado entre los puntajes y el botón
-        finishPane.add(Box.createVerticalStrut(30));
-
-        // Botón para cerrar el juego
-        JButton btnCerrar = new JButton("Cerrar juego");
-        btnCerrar.setFont(new Font("Arial", Font.PLAIN, 18));
-        btnCerrar.setBackground(new Color(94, 180, 70));
-        btnCerrar.setForeground(Color.WHITE);
-        btnCerrar.setFocusPainted(false);
-        btnCerrar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnCerrar.addActionListener(_ -> System.exit(0));
-        finishPane.add(btnCerrar);
-
-        finishPane.add(Box.createVerticalGlue()); // Espaciado final para centrar verticalmente
-
-        // Refrescar el panel
-        finishPane.revalidate();
-        finishPane.repaint();
-
-        // Mostrar el panel final
-        cardLayout.show(cardPane, "finish-pane");
-    }
-
-
-    @Override
-    public void actualizarMesa() {
-        iniciarTurnos();
     }
 
     private void notificar(String msg) {

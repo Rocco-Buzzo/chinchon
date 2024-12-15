@@ -19,13 +19,13 @@ public class ImagePanel extends JPanel {
         }
     }
 
-    // Sobrescribir el metodo paintComponent para dibujar la imagen
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (image != null) {
-            // Dibujar la imagen ajustada al tamaño del panel
-            g.drawImage(image, 64, 20, getWidth() - 128, getHeight() - 20, this);
+            int width = getWidth();
+            int height = getHeight();
+            g.drawImage(image, 0, 0, width, height, this); // Redimensiona la imagen al tamaño del panel
         }
     }
 }

@@ -126,8 +126,8 @@ public class VistaConsola implements IVista {
 
         consola.append(mensaje + "\n\n");
 
+        // Mostrar mano ganadora solo si no se guardó la partida y no fue cancelada
         if (!guardado && controlador.getGanador() != null && !controlador.getGanador().isEmpty()) {
-            // Mostrar mano ganadora
             consola.append("Mano ganadora:\n");
 
             // Crear las líneas para renderizar las cartas
@@ -171,7 +171,6 @@ public class VistaConsola implements IVista {
         input.addActionListener(exitGame);
         ok.addActionListener(exitGame);
     }
-
 
     @Override
     public void actualizarMesa() {
@@ -502,6 +501,7 @@ public class VistaConsola implements IVista {
                     tirarCarta();
                     break;
                 case "C":
+                    controlador.cerrarRonda();
                     break;
                 case "P":
                     ordenarCartas("p");
