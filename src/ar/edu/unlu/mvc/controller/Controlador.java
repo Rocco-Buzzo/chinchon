@@ -143,15 +143,15 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public ArrayList<Carta> getJugadorCartas(String nombreJugador) {
+    public ArrayList<String> getJugadorCartas(String nombreJugador) {
         try {
-            return iChinchon.getJugador(nombreJugador).getMano().getCartas();
+            return iChinchon.getJugadorCartas(nombreJugador);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public int getCartaPosition(Carta carta) {
+    public int getCartaPosition(String carta) {
         try {
             return iChinchon.getCartaPosition(carta);
         } catch (RemoteException e) {
@@ -215,7 +215,7 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public ArrayList<Carta> getManoGanadora(String nombre) {
+    public ArrayList<String> getManoGanadora(String nombre) {
         try {
             return iChinchon.getManoGanadora(nombre);
         } catch (Exception e) {
@@ -223,7 +223,7 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public ArrayList<Carta> getManoPerdedora(String nombre) {
+    public ArrayList<String> getManoPerdedora(String nombre) {
         try {
             return iChinchon.getManoPerdedora(nombre);
         } catch (Exception e) {
@@ -247,6 +247,14 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
+    public ArrayList<String> listarPartidas(String nombre) {
+        try {
+            return iChinchon.listarPartidas(nombre);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public <T extends IObservableRemoto> void setModeloRemoto(T t) throws RemoteException {
         this.iChinchon = (IChinchon) t;
@@ -265,6 +273,4 @@ public class Controlador implements IControladorRemoto {
             }
         }
     }
-
-
 }

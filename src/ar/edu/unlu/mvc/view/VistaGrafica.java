@@ -1,14 +1,13 @@
 package ar.edu.unlu.mvc.view;
 
 import ar.edu.unlu.mvc.controller.Controlador;
-import ar.edu.unlu.mvc.model.clases.Carta;
-import ar.edu.unlu.mvc.model.clases.Serializacion;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.*;
 
 public class VistaGrafica implements IVista {
@@ -21,7 +20,7 @@ public class VistaGrafica implements IVista {
 
     private final JFrame chinchonFrame = new JFrame("Chinchon - Main Menu");
     private static final Color BACKGROUND_COLOR = new Color(55, 101, 73);
-    private static final Font BTN_FONT = new Font("Arial", Font.BOLD, 24);
+    private static final Font BTN_FONT = new Font("Arial", Font.BOLD, 14);
     private static final String IMAGES_PATH = "./ar/edu/unlu/assets/";
 
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -30,6 +29,20 @@ public class VistaGrafica implements IVista {
     // Ajustar el tamaño para que no cubra la barra de tareas
     private final int FRAME_WIDTH = screenSize.width - screenInsets.left - screenInsets.right;
     private final int FRAME_HEIGHT = screenSize.height - screenInsets.top - screenInsets.bottom;
+
+    private final WindowAdapter exit = new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            renderExitGame();
+        }
+    };
+
+    private final WindowAdapter login = new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            renderPlayerLogin();
+        }
+    };
 
     @Override
     public void setControlador(Controlador controlador) {
@@ -54,10 +67,10 @@ public class VistaGrafica implements IVista {
 
         // Mostrar ganador y mano ganadora
         cerrarPane.add(Box.createVerticalStrut(20));
-        cerrarPane.add(crearEtiqueta("Ganador: " + controlador.getJugadorActual(), 24, Color.WHITE));
-        cerrarPane.add(crearEtiqueta("Manos en mesa:", 24, Color.WHITE));
+        cerrarPane.add(crearEtiqueta("Ganador: " + controlador.getJugadorActual(), 14, Color.WHITE));
+        cerrarPane.add(crearEtiqueta("Manos en mesa:", 14, Color.WHITE));
         for (String nombre : jugadores) {
-            cerrarPane.add(crearEtiqueta(("Ligaciones de " + nombre + ": "), 24, Color.WHITE));
+            cerrarPane.add(crearEtiqueta(("Ligaciones de " + nombre + ": "), 14, Color.WHITE));
             if (controlador.getJugadorActual().equals(nombre)) {
                 cerrarPane.add(crearPanelMano(controlador.getManoGanadora(nombre)));
             } else {
@@ -69,14 +82,13 @@ public class VistaGrafica implements IVista {
         cerrarPane.add(Box.createVerticalStrut(5));
         for (String jugador : jugadores) {
             int puntos = controlador.getPuntaje(jugador);
-            cerrarPane.add(crearEtiqueta(String.format("El jugador %s tiene %d puntos.", jugador, puntos), 24, Color.WHITE));
+            cerrarPane.add(crearEtiqueta(String.format("El jugador %s tiene %d puntos.", jugador, puntos), 14, Color.WHITE));
         }
 
         cerrarPane.add(Box.createVerticalStrut(10));
 
         // Agregar el botón de continuar y el contador de jugadores listos
-        cerrarPane.add(crearPanelContinuar(jugadores.size()));
-
+        cerrarPane.add(crearPanelContinuar());
         cerrarPane.add(Box.createVerticalStrut(20));
         cerrarPane.revalidate();
         cerrarPane.repaint();
@@ -92,7 +104,7 @@ public class VistaGrafica implements IVista {
         if (controlador.getJugadoresSize() == 2) {
             renderMenu();
         } else {
-            playerLogin();
+            renderPlayerLogin();
         }
     }
 
@@ -197,14 +209,14 @@ public class VistaGrafica implements IVista {
                 : (controlador.getGanador() != null && !controlador.getGanador().isEmpty())
                 ? "¡La partida ha finalizado! Ganador: " + controlador.getGanador()
                 : "Partida cancelada.";
-        finishPane.add(crearEtiqueta(mensaje, 24, Color.WHITE), gbc);
+        finishPane.add(crearEtiqueta(mensaje, 14, Color.WHITE), gbc);
 
         // Mostrar la mano ganadora si corresponde
-        if (controlador.getGanador() != null) {
+        if (controlador.getGanador() != null && !controlador.getGanador().isEmpty()) {
             ArrayList<String> jugadores = controlador.nombreJugadores();
-            finishPane.add(crearEtiqueta("Manos en mesa:", 24, Color.WHITE));
+            finishPane.add(crearEtiqueta("Manos en mesa:", 14, Color.WHITE));
             for (String nombre : jugadores) {
-                finishPane.add(crearEtiqueta(("Ligaciones de " + nombre + ": "), 24, Color.WHITE));
+                finishPane.add(crearEtiqueta(("Ligaciones de " + nombre + ": "), 14, Color.WHITE));
                 if (controlador.getJugadorActual().equals(nombre)) {
                     finishPane.add(crearPanelMano(controlador.getManoGanadora(nombre)));
                 } else {
@@ -220,7 +232,7 @@ public class VistaGrafica implements IVista {
                 int puntos = controlador.getPuntaje(jugador);
                 String puntajeMensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
                 gbc.gridy++;
-                finishPane.add(crearEtiqueta(puntajeMensaje, 24, Color.WHITE), gbc);
+                finishPane.add(crearEtiqueta(puntajeMensaje, 14, Color.WHITE), gbc);
             }
         }
 
@@ -306,12 +318,8 @@ public class VistaGrafica implements IVista {
     // Funciona correctamente.
     private void renderMenu() {
         chinchonFrame.setTitle("Chinchón");
-        chinchonFrame.removeWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                renderExitGame();
-            }
-        });
+        chinchonFrame.addWindowListener(login);
+        chinchonFrame.removeWindowListener(exit);
         JPanel menu = jPanelMap.get("menu-pane");
         menu.removeAll();
         menu.setLayout(new GridBagLayout()); // Cambiamos a GridBagLayout para centrar
@@ -325,7 +333,7 @@ public class VistaGrafica implements IVista {
 
         // Panel del título del juego
         JPanel imagePane = new ImagePanel(getClass().getClassLoader().getResource(IMAGES_PATH + "titulo.png"));
-        imagePane.setPreferredSize(new Dimension(1024, 108));
+        imagePane.setPreferredSize(new Dimension(468, 68));
         imagePane.setBackground(BACKGROUND_COLOR);
 
         // Panel para los botones
@@ -337,11 +345,11 @@ public class VistaGrafica implements IVista {
         btnGbc.gridy = 0;
         btnGbc.insets = new Insets(10, 10, 10, 10);
 
-        Dimension buttonSize = new Dimension(350, 65);
+        Dimension buttonSize = new Dimension(200, 40);
 
         // Botón para iniciar la partida
         JButton btnStart = new JButton();
-        btnStart.setFont(new Font("Arial", Font.BOLD, 24));
+        btnStart.setFont(BTN_FONT);
         btnStart.setText("Iniciar Partida");
         btnStart.setPreferredSize(buttonSize);
         btnStart.setBackground(new Color(26, 57, 44, 255));
@@ -352,7 +360,7 @@ public class VistaGrafica implements IVista {
         });
 
         JButton btnJoin = new JButton();
-        btnJoin.setFont(new Font("Arial", Font.BOLD, 24));
+        btnJoin.setFont(BTN_FONT);
         btnJoin.setText("Unirse a Partida");
         btnJoin.setPreferredSize(buttonSize);
         btnJoin.setBackground(new Color(26, 57, 44, 255));
@@ -367,7 +375,7 @@ public class VistaGrafica implements IVista {
         });
 
         JButton btnLoad = new JButton();
-        btnLoad.setFont(new Font("Arial", Font.BOLD, 24));
+        btnLoad.setFont(BTN_FONT);
         btnLoad.setText("Cargar Partida");
         btnLoad.setPreferredSize(buttonSize);
         btnLoad.setBackground(new Color(26, 57, 44, 255));
@@ -375,7 +383,7 @@ public class VistaGrafica implements IVista {
         btnLoad.addActionListener(_ -> renderLoadGame());
 
         JButton btnTop = new JButton();
-        btnTop.setFont(new Font("Arial", Font.BOLD, 24));
+        btnTop.setFont(BTN_FONT);
         btnTop.setText("Ranking de Jugadores");
         btnTop.setPreferredSize(buttonSize);
         btnTop.setBackground(new Color(26, 57, 44, 255));
@@ -386,7 +394,7 @@ public class VistaGrafica implements IVista {
         });
 
         JButton btnRules = new JButton();
-        btnRules.setFont(new Font("Arial", Font.BOLD, 24));
+        btnRules.setFont(BTN_FONT);
         btnRules.setText("Reglas");
         btnRules.setPreferredSize(buttonSize);
         btnRules.setBackground(new Color(26, 57, 44, 255));
@@ -394,7 +402,7 @@ public class VistaGrafica implements IVista {
         btnRules.addActionListener(_ -> renderRules());
 
         JButton btnQuit = new JButton();
-        btnQuit.setFont(new Font("Arial", Font.BOLD, 24));
+        btnQuit.setFont(BTN_FONT);
         btnQuit.setText("Salir");
         btnQuit.setPreferredSize(buttonSize);
         btnQuit.setBackground(new Color(26, 57, 44, 255));
@@ -421,8 +429,8 @@ public class VistaGrafica implements IVista {
         JLabel player = new JLabel();
         player.setText("Bienvenido, " + this.nombreJugador + "!");
         player.setBackground(BACKGROUND_COLOR);
-        player.setForeground(Color.WHITE);
-        player.setFont(new Font("Arial", Font.BOLD, 16));
+        player.setForeground(Color.YELLOW);
+        player.setFont(BTN_FONT);
         player.setHorizontalAlignment(JLabel.CENTER);
 
         // Agregar componentes al panel principal centrado
@@ -488,7 +496,7 @@ public class VistaGrafica implements IVista {
 
         // Crea el botón "Volver al Menú"
         JButton volverButton = new JButton("Volver al Menú");
-        volverButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        volverButton.setFont(BTN_FONT);
         volverButton.setBackground(new Color(0x1A392C));
         volverButton.setForeground(Color.WHITE);
         volverButton.setFocusPainted(false);
@@ -519,13 +527,13 @@ public class VistaGrafica implements IVista {
         centerPanel.setBackground(BACKGROUND_COLOR);
 
         JLabel titleLabel = new JLabel("Introduzca el nombre de la partida a cargar");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setFont(BTN_FONT);
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         titleLabel.setForeground(Color.yellow);
         load.add(titleLabel, BorderLayout.NORTH);
 
-        ArrayList<String> partidasGuardadas = Serializacion.listarPartidas(nombreJugador);
+        ArrayList<String> partidasGuardadas = controlador.listarPartidas(nombreJugador);
         if (partidasGuardadas.isEmpty()) {
             notificar("No hay partidas guardadas.");
             renderMenu();
@@ -538,8 +546,8 @@ public class VistaGrafica implements IVista {
         }
         JComboBox<String> partidasComboBox = new JComboBox<>(comboBoxModel);
         partidasComboBox.setBackground(Color.WHITE);
-        partidasComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
-        partidasComboBox.setPreferredSize(new Dimension(480, 30));
+        partidasComboBox.setFont(BTN_FONT);
+        partidasComboBox.setPreferredSize(new Dimension(480, 24));
         partidasComboBox.setSelectedIndex(-1); // No seleccionar ningún ítem por defecto
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -552,7 +560,7 @@ public class VistaGrafica implements IVista {
         // Campo de texto editable para introducir el nombre de la partida
         JTextField nombrePartidaTextField = new JTextField();
         nombrePartidaTextField.setFont(new Font("Arial", Font.PLAIN, 14));
-        nombrePartidaTextField.setPreferredSize(new Dimension(480, 30));
+        nombrePartidaTextField.setPreferredSize(new Dimension(480, 24));
         nombrePartidaTextField.setHorizontalAlignment(JTextField.CENTER);
         nombrePartidaTextField.setText((String) comboBoxModel.getSelectedItem());
         gbc.gridy = 1;
@@ -562,7 +570,7 @@ public class VistaGrafica implements IVista {
         buttonPanel.setBackground(BACKGROUND_COLOR);
 
         JButton cargarButton = new JButton("Cargar");
-        cargarButton.setFont(new Font("Arial", Font.BOLD, 14));
+        cargarButton.setFont(BTN_FONT);
         cargarButton.setBackground(new Color(0x61C462));
         cargarButton.setPreferredSize(new Dimension(175, 30));
         cargarButton.addActionListener(_ -> {
@@ -579,7 +587,7 @@ public class VistaGrafica implements IVista {
         });
 
         JButton cancelarButton = new JButton("Cancelar");
-        cancelarButton.setFont(new Font("Arial", Font.BOLD, 14));
+        cancelarButton.setFont(BTN_FONT);
         cancelarButton.setBackground(new Color(0xFF3C3C));
         cancelarButton.setPreferredSize(new Dimension(175, 30));
         cancelarButton.addActionListener(_ -> cardLayout.show(cardPane, "menu-pane"));
@@ -617,33 +625,33 @@ public class VistaGrafica implements IVista {
         // Opciones
         JLabel cartasOption = new JLabel("CANTIDAD DE CARTAS", JLabel.CENTER);
         cartasOption.setForeground(Color.WHITE);
-        cartasOption.setFont(new Font("Arial", Font.BOLD, 24));
+        cartasOption.setFont(BTN_FONT);
 
         String[] cartasBoxItems = {"40", "48"};
         JComboBox<String> cartasBox = new JComboBox<>(cartasBoxItems);
-        cartasBox.setFont(new Font("Arial", Font.BOLD, 16));
+        cartasBox.setFont(BTN_FONT);
         cartasBox.setPreferredSize(new Dimension(100, 25));
 
         JLabel comodinOption = new JLabel("COMODINES", JLabel.CENTER);
         comodinOption.setForeground(Color.WHITE);
-        comodinOption.setFont(new Font("Arial", Font.BOLD, 24));
+        comodinOption.setFont(BTN_FONT);
 
         String[] comodinBoxItems = {"No", "Si"};
         JComboBox<String> comodinBox = new JComboBox<>(comodinBoxItems);
-        comodinBox.setFont(new Font("Arial", Font.BOLD, 16));
+        comodinBox.setFont(BTN_FONT);
         comodinBox.setPreferredSize(new Dimension(100, 25));
 
         JLabel puntosOption = new JLabel("PUNTOS MÁXIMOS", JLabel.CENTER);
         puntosOption.setForeground(Color.WHITE);
-        puntosOption.setFont(new Font("Arial", Font.BOLD, 24));
+        puntosOption.setFont(BTN_FONT);
 
         String[] puntosBoxItems = {"50", "100"};
         JComboBox<String> puntosBox = new JComboBox<>(puntosBoxItems);
-        puntosBox.setFont(new Font("Arial", Font.BOLD, 16));
+        puntosBox.setFont(BTN_FONT);
         puntosBox.setPreferredSize(new Dimension(100, 25));
 
         JButton btnAccept = new JButton("Aceptar");
-        btnAccept.setFont(new Font("Arial", Font.BOLD, 18));
+        btnAccept.setFont(BTN_FONT);
         btnAccept.setPreferredSize(new Dimension(150, 50));
         btnAccept.setBackground(new Color(36, 184, 97));
         btnAccept.setForeground(Color.WHITE);
@@ -662,7 +670,7 @@ public class VistaGrafica implements IVista {
         });
 
         JButton btnBack = new JButton("Volver");
-        btnBack.setFont(new Font("Arial", Font.BOLD, 18));
+        btnBack.setFont(BTN_FONT);
         btnBack.setPreferredSize(new Dimension(150, 50));
         btnBack.setBackground(new Color(255, 60, 60));
         btnBack.setForeground(Color.WHITE);
@@ -718,7 +726,7 @@ public class VistaGrafica implements IVista {
         JLabel ruleTitle = new JLabel("Reglas del CHINCHÓN");
         ruleTitle.setBackground(BACKGROUND_COLOR);
         ruleTitle.setForeground(Color.yellow);
-        ruleTitle.setFont(new Font("Arial", Font.BOLD, 38));
+        ruleTitle.setFont(new Font("Arial", Font.BOLD, 24));
         ruleTitle.setHorizontalAlignment(JLabel.CENTER);
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -731,7 +739,7 @@ public class VistaGrafica implements IVista {
         JLabel jugarCartasTitle = new JLabel("Jugar las cartas");
         jugarCartasTitle.setBackground(BACKGROUND_COLOR);
         jugarCartasTitle.setForeground(Color.yellow);
-        jugarCartasTitle.setFont(new Font("Arial", Font.BOLD, 24));
+        jugarCartasTitle.setFont(BTN_FONT);
         jugarCartasTitle.setHorizontalAlignment(JLabel.CENTER);
         ruleDescription.add(jugarCartasTitle, gbc);
 
@@ -744,7 +752,7 @@ public class VistaGrafica implements IVista {
         JLabel ligarCartasTitle = new JLabel("Ligar las cartas");
         ligarCartasTitle.setBackground(BACKGROUND_COLOR);
         ligarCartasTitle.setForeground(Color.yellow);
-        ligarCartasTitle.setFont(new Font("Arial", Font.BOLD, 24));
+        ligarCartasTitle.setFont(BTN_FONT);
         ligarCartasTitle.setHorizontalAlignment(JLabel.CENTER);
         ruleDescription.add(ligarCartasTitle, gbc);
 
@@ -757,7 +765,7 @@ public class VistaGrafica implements IVista {
         JLabel cerrarManoTitle = new JLabel("Cerrar la mano");
         cerrarManoTitle.setBackground(BACKGROUND_COLOR);
         cerrarManoTitle.setForeground(Color.yellow);
-        cerrarManoTitle.setFont(new Font("Arial", Font.BOLD, 24));
+        cerrarManoTitle.setFont(BTN_FONT);
         cerrarManoTitle.setHorizontalAlignment(JLabel.CENTER);
         ruleDescription.add(cerrarManoTitle, gbc);
 
@@ -770,7 +778,7 @@ public class VistaGrafica implements IVista {
         JLabel colocarCartasTitle = new JLabel("Colocar las cartas");
         colocarCartasTitle.setBackground(BACKGROUND_COLOR);
         colocarCartasTitle.setForeground(Color.yellow);
-        colocarCartasTitle.setFont(new Font("Arial", Font.BOLD, 24));
+        colocarCartasTitle.setFont(BTN_FONT);
         colocarCartasTitle.setHorizontalAlignment(JLabel.CENTER);
         ruleDescription.add(colocarCartasTitle, gbc);
 
@@ -783,7 +791,7 @@ public class VistaGrafica implements IVista {
         JLabel recuentoManoTitle = new JLabel("Recuento de la mano");
         recuentoManoTitle.setBackground(BACKGROUND_COLOR);
         recuentoManoTitle.setForeground(Color.yellow);
-        recuentoManoTitle.setFont(new Font("Arial", Font.BOLD, 24));
+        recuentoManoTitle.setFont(BTN_FONT);
         recuentoManoTitle.setHorizontalAlignment(JLabel.CENTER);
         ruleDescription.add(recuentoManoTitle, gbc);
 
@@ -797,7 +805,7 @@ public class VistaGrafica implements IVista {
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
 
         JButton btnBack = new JButton();
-        btnBack.setFont(new Font("Arial", Font.BOLD, 18));
+        btnBack.setFont(BTN_FONT);
         btnBack.setText("Volver");
         btnBack.setPreferredSize(new Dimension(150, 50));
         btnBack.setBackground(new Color(255, 60, 60, 255));
@@ -821,12 +829,8 @@ public class VistaGrafica implements IVista {
     private void renderInGame() {
         chinchonFrame.setTitle("Chinchon - In Game - " + nombreJugador);
         chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        chinchonFrame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                renderExitGame();
-            }
-        });
+        chinchonFrame.addWindowListener(exit);
+        chinchonFrame.removeWindowListener(login);
         chinchonFrame.setLocation(screenInsets.left, screenInsets.top);
         JPanel inGame = jPanelMap.get("ingame-pane");
         inGame.removeAll();
@@ -849,13 +853,13 @@ public class VistaGrafica implements IVista {
         gbc.gridy = 0;
 
         JLabel puntajeLabel = new JLabel("Tu puntaje: " + controlador.getPuntaje(nombreJugador));
-        puntajeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        puntajeLabel.setFont(BTN_FONT);
         puntajeLabel.setForeground(Color.WHITE);
         infoPanel.add(puntajeLabel, gbc);
 
         gbc.gridy = 1;
         JLabel turnoLabel = new JLabel("Turno de " + controlador.getJugadorActual());
-        turnoLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        turnoLabel.setFont(BTN_FONT);
         turnoLabel.setForeground(Color.WHITE);
         infoPanel.add(turnoLabel, gbc);
 
@@ -937,30 +941,46 @@ public class VistaGrafica implements IVista {
 
         JPanel cartasEnMano = new JPanel(new FlowLayout());
         cartasEnMano.setBackground(BACKGROUND_COLOR);
-        Dimension buttonSize = new Dimension(113, 200);
+        Dimension buttonSize = new Dimension(88, 156);
 
-        ArrayList<Carta> cartasAMostrar;
+        ArrayList<String> cartasAMostrar = controlador.getJugadorCartas(nombreJugador);
 
-        // Si es el turno del jugador actual, mostramos sus cartas; si no, mostramos las del rival.
-        cartasAMostrar = controlador.getJugadorCartas(nombreJugador);
-
-        // Renderizar botones de cartas
-        for (Carta carta : cartasAMostrar) {
+        for (String carta : cartasAMostrar) {
             JButton button = new JButton();
-            ImageIcon iconoOriginal = new ImageIcon(carta.getImagen().getImage());
-            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+            String rutaImagen = "src/ar/edu/unlu/assets/" + carta + ".png";
+
+            // Verificar que la imagen exista
+            File archivoImagen = new File(rutaImagen);
+            if (!archivoImagen.exists()) {
+                System.err.println("Imagen no encontrada: " + rutaImagen);
+                continue;
+            }
+
+            // Cargar y redimensionar la imagen
+            ImageIcon iconoOriginal = new ImageIcon(rutaImagen);
+            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(
+                    buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH
+            );
             button.setIcon(new ImageIcon(imagenRedimensionada));
+
+            // Configurar propiedades del botón
             button.setBackground(BACKGROUND_COLOR);
+            button.setOpaque(true);
             button.setPreferredSize(buttonSize);
 
             // Solo añadimos acción para el jugador en turno
-            if (controlador.getJugadorActual().equals(nombreJugador)) {
-                button.addActionListener(_ -> controlador.tirarCarta(controlador.getCartaPosition(carta)));
+            if (nombreJugador != null && nombreJugador.equals(controlador.getJugadorActual())) {
+                int posicion = controlador.getCartaPosition(carta);
+                if (posicion > 0) {
+                    button.addActionListener(_ -> controlador.tirarCarta(posicion));
+                } else {
+                    System.err.println("Carta no válida: " + carta);
+                }
             }
 
+            // Añadir botón a la lista
             cartasEnMano.add(button);
         }
-
         JPanel cartasRival = new JPanel(new FlowLayout());
         int cantidadCartasRival;
         if (nombreJugador.equals(controlador.getJugadorActual())) {
@@ -994,7 +1014,7 @@ public class VistaGrafica implements IVista {
         // Renderizar botones de MAZO
         JButton button = new JButton();
         ImageIcon iconoOriginal = new ImageIcon("src/ar/edu/unlu/assets/REVERSO.png");
-        buttonSize = new Dimension(203, 360);
+        buttonSize = new Dimension(161, 286);
         Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
         button.setIcon(new ImageIcon(imagenRedimensionada));
         button.setBackground(BACKGROUND_COLOR);
@@ -1038,12 +1058,8 @@ public class VistaGrafica implements IVista {
     private void renderWaitingTurn() {
         chinchonFrame.setTitle("Chinchon - Waiting - " + nombreJugador);
         chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        chinchonFrame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                renderExitGame();
-            }
-        });
+        chinchonFrame.addWindowListener(exit);
+        chinchonFrame.removeWindowListener(login);
         JPanel wait = jPanelMap.get("waitingturn-pane");
         wait.removeAll();
         wait.setLayout(new BorderLayout());
@@ -1065,13 +1081,13 @@ public class VistaGrafica implements IVista {
         gbc.gridy = 0;
 
         JLabel puntajeLabel = new JLabel("Puntaje: " + controlador.getPuntaje(nombreJugador));
-        puntajeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        puntajeLabel.setFont(BTN_FONT);
         puntajeLabel.setForeground(Color.WHITE);
         infoPanel.add(puntajeLabel, gbc);
 
         gbc.gridy = 1;
         JLabel turnoLabel = new JLabel("Turno de " + controlador.getJugadorActual());
-        turnoLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        turnoLabel.setFont(BTN_FONT);
         turnoLabel.setForeground(Color.WHITE);
         infoPanel.add(turnoLabel, gbc);
 
@@ -1154,13 +1170,13 @@ public class VistaGrafica implements IVista {
 
         // Mensaje
         JLabel mensaje = new JLabel("¿Quieres guardar la partida antes de salir?", JLabel.CENTER);
-        mensaje.setFont(new Font("Arial", Font.BOLD, 36));
+        mensaje.setFont(BTN_FONT);
         mensaje.setForeground(Color.WHITE);
 
         // Campo de texto
         JTextField nombrePartidaTextField = new JTextField();
-        nombrePartidaTextField.setFont(new Font("Arial", Font.PLAIN, 36));
-        nombrePartidaTextField.setPreferredSize(new Dimension(480, 50));
+        nombrePartidaTextField.setFont(new Font("Arial", Font.PLAIN, 14));
+        nombrePartidaTextField.setPreferredSize(new Dimension(368, 24));
         nombrePartidaTextField.setHorizontalAlignment(JTextField.CENTER);
 
         // Botones
@@ -1199,7 +1215,7 @@ public class VistaGrafica implements IVista {
     }
 
     private void configurarBoton(JButton boton, Color colorFondo, ActionListener action) {
-        boton.setFont(new Font("Arial", Font.BOLD, 36));
+        boton.setFont(BTN_FONT);
         boton.setBackground(colorFondo);
         boton.setForeground(Color.WHITE);
         boton.setFocusPainted(false);
@@ -1233,7 +1249,7 @@ public class VistaGrafica implements IVista {
     }
 
     private void configurarBoton(JButton boton) {
-        Dimension buttonSize = new Dimension(350, 45); // Ancho: 275, Alto: 75
+        Dimension buttonSize = new Dimension(200, 40); // Ancho: 275, Alto: 75
         boton.setFont(BTN_FONT);
         boton.setBackground(new Color(26, 57, 44));
         boton.setForeground(Color.WHITE);
@@ -1244,7 +1260,7 @@ public class VistaGrafica implements IVista {
         JTextArea textArea = new JTextArea(text);
         textArea.setBackground(BACKGROUND_COLOR);
         textArea.setForeground(Color.WHITE);
-        textArea.setFont(new Font("Arial", Font.BOLD, 18));
+        textArea.setFont(BTN_FONT);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.setEditable(false);
@@ -1252,7 +1268,7 @@ public class VistaGrafica implements IVista {
         return textArea;
     }
 
-    private void playerLogin() {
+    private void renderPlayerLogin() {
         // Configuración de la ventana principal
         chinchonFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         chinchonFrame.setTitle("Chinchón - Login");
@@ -1276,8 +1292,8 @@ public class VistaGrafica implements IVista {
 
         // Título
         JLabel titlePane = new JLabel("Ingrese el nombre de usuario", JLabel.CENTER);
-        titlePane.setFont(new Font("Arial", Font.BOLD, 24));
-        titlePane.setForeground(Color.WHITE);
+        titlePane.setFont(BTN_FONT);
+        titlePane.setForeground(Color.yellow);
         gbc.gridy = 0;
         loginPane.add(titlePane, gbc);
 
@@ -1290,8 +1306,8 @@ public class VistaGrafica implements IVista {
         labelName.setForeground(Color.WHITE);
 
         JTextField nameTextField = new JTextField();
-        nameTextField.setFont(new Font("Arial", Font.PLAIN, 16));
-        nameTextField.setPreferredSize(new Dimension(480, 50));
+        nameTextField.setFont(new Font("Arial", Font.PLAIN, 14));
+        nameTextField.setPreferredSize(new Dimension(140, 24));
 
         contentPane.add(labelName);
         contentPane.add(nameTextField);
@@ -1306,11 +1322,13 @@ public class VistaGrafica implements IVista {
 
         JButton btnAccept = new JButton("Aceptar");
         btnAccept.setBackground(new Color(135, 255, 75));
+        btnAccept.setForeground(Color.BLACK);
         btnAccept.setPreferredSize(buttonSize);
         btnAccept.setFont(BTN_FONT);
 
         JButton btnCancel = new JButton("Cancelar");
         btnCancel.setBackground(new Color(255, 60, 60));
+        btnCancel.setForeground(Color.white);
         btnCancel.setPreferredSize(buttonSize);
         btnCancel.setFont(BTN_FONT);
 
@@ -1361,7 +1379,7 @@ public class VistaGrafica implements IVista {
         return etiqueta;
     }
 
-    private JPanel crearPanelMano(ArrayList<Carta> mano) {
+    private JPanel crearPanelMano(ArrayList<String> mano) {
         JPanel manoPane = new JPanel(new FlowLayout());
         manoPane.setBackground(BACKGROUND_COLOR);
 
@@ -1371,9 +1389,10 @@ public class VistaGrafica implements IVista {
         }
 
         Dimension buttonSize = new Dimension(113, 200);
-        for (Carta c : mano) {
+        for (String c : mano) {
             JButton button = new JButton();
-            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
+            String rutaImagen = "src/ar/edu/unlu/assets/" + c + ".png";
+            ImageIcon iconoOriginal = new ImageIcon(rutaImagen);
             Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
             button.setIcon(new ImageIcon(imagenRedimensionada));
             button.setBackground(BACKGROUND_COLOR);
@@ -1383,16 +1402,12 @@ public class VistaGrafica implements IVista {
         return manoPane;
     }
 
-    private JPanel crearPanelContinuar(int totalJugadores) {
+    private JPanel crearPanelContinuar() {
         JPanel readyPanel = new JPanel(new FlowLayout());
         readyPanel.setBackground(BACKGROUND_COLOR);
 
-        JLabel readyLabel = new JLabel("Jugadores listos: 0/" + totalJugadores);
-        readyLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        readyLabel.setForeground(Color.WHITE);
-
         JButton btnContinuar = new JButton("Continuar");
-        btnContinuar.setFont(new Font("Arial", Font.BOLD, 18));
+        btnContinuar.setFont(BTN_FONT);
         btnContinuar.setPreferredSize(new Dimension(200, 50));
         btnContinuar.setBackground(new Color(135, 255, 75));
         btnContinuar.setForeground(Color.BLACK);
@@ -1400,7 +1415,6 @@ public class VistaGrafica implements IVista {
         btnContinuar.addActionListener(_ -> iniciarTurnos());
 
         readyPanel.add(btnContinuar);
-        readyPanel.add(readyLabel);
         return readyPanel;
     }
 
@@ -1410,34 +1424,9 @@ public class VistaGrafica implements IVista {
         panel.repaint();
     }
 
-    private JPanel crearPanelCartas(ArrayList<Carta> cartas) {
-        JPanel panelCartas = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        panelCartas.setBackground(BACKGROUND_COLOR);
-
-        Dimension buttonSize = new Dimension(113, 200);
-        for (Carta carta : cartas) {
-            JButton botonCarta = crearBotonCarta(carta, buttonSize);
-            panelCartas.add(botonCarta);
-        }
-        return panelCartas;
-    }
-
-    private JButton crearBotonCarta(Carta carta, Dimension buttonSize) {
-        JButton boton = new JButton();
-        ImageIcon iconoOriginal = new ImageIcon(carta.getImagen().getImage());
-        Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(
-                buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
-        boton.setIcon(new ImageIcon(imagenRedimensionada));
-        boton.setPreferredSize(buttonSize);
-        boton.setBackground(BACKGROUND_COLOR);
-        boton.setFocusPainted(false);
-        boton.setBorderPainted(false);
-        return boton;
-    }
-
     private JButton crearBoton(Color fondo, ActionListener accion) {
         JButton boton = new JButton("Volver al Menú");
-        boton.setFont(new Font("Arial", Font.PLAIN, 18));
+        boton.setFont(BTN_FONT);
         boton.setBackground(fondo);
         boton.setForeground(Color.WHITE);
         boton.setFocusPainted(false);

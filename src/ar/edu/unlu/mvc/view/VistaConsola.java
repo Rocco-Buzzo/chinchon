@@ -1,9 +1,6 @@
 package ar.edu.unlu.mvc.view;
 
 import ar.edu.unlu.mvc.controller.Controlador;
-import ar.edu.unlu.mvc.model.clases.Carta;
-import ar.edu.unlu.mvc.model.clases.Serializacion;
-
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +19,21 @@ public class VistaConsola implements IVista {
 
     private final JFrame chinchonFrame = new JFrame("Chinchon - Main Menu");
 
-    private static final Font GAME_FONT = new Font("Courier New", Font.PLAIN, 14);
+    private static final Font GAME_FONT = new Font("Courier New", Font.PLAIN, 12);
+
+    private final WindowAdapter exit = new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            renderExitGame();
+        }
+    };
+
+    private final WindowAdapter login = new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            renderPlayerLogin();
+        }
+    };
 
     @Override
     public void setControlador(Controlador controlador) {
@@ -151,7 +162,7 @@ public class VistaConsola implements IVista {
         consola.append(mensaje + "\n\n");
 
         // Mostrar mano ganadora solo si no se guardó la partida y no fue cancelada
-        if (controlador.getGanador() != null) {
+        if (controlador.getGanador() != null && !controlador.getGanador().isEmpty()) {
             renderManosFinales();
         }
 
@@ -183,7 +194,7 @@ public class VistaConsola implements IVista {
     private void initMenu() {
         chinchonFrame.setTitle("Consola");
         chinchonFrame.setResizable(false);
-        chinchonFrame.setSize(1024, 768);
+        chinchonFrame.setSize(1024, 684);
         chinchonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         chinchonFrame.setIconImage(new ImageIcon("src/ar/edu/unlu/assets/ICONO.png").getImage());
         chinchonFrame.setLayout(new BorderLayout());
@@ -223,12 +234,7 @@ public class VistaConsola implements IVista {
 
     // Metodo para renderizar el login del jugador.
     private void renderPlayerLogin() {
-        chinchonFrame.removeWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                renderExitGame();
-            }
-        });
+        chinchonFrame.removeWindowListener(exit);
         chinchonFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         title();
         consola.append("Bienvenido al juego. Por favor, ingresa tu nombre para continuar.\n");
@@ -250,15 +256,12 @@ public class VistaConsola implements IVista {
 
     // Metodo para cargar el Menu Principal.
     private void renderMenu() {
+        chinchonFrame.addWindowListener(login);
+        chinchonFrame.removeWindowListener(exit);
         limpiarConsola(); // Limpiar la consola antes de mostrar el menú
         title();
         chinchonFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        chinchonFrame.removeWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                renderExitGame();
-            }
-        });
+        chinchonFrame.removeWindowListener(exit);
         consola.append("Bienvenido, " + nombreJugador + "!\n\n");
         consola.append("Menú principal:\n");
         consola.append("1. Nueva partida\n");
@@ -335,7 +338,6 @@ public class VistaConsola implements IVista {
         ok.addActionListener(menuAction);
     }
 
-
     // Métodos correspondientes al menú
     // 1. Renderiza el menu para seleccionar las configuraciones de la partida
     private void renderSettings() {
@@ -403,7 +405,7 @@ public class VistaConsola implements IVista {
     private void renderLoadGame() {
         limpiarActionListeners(input, ok);
         // Aquí puedes incluir el código para mostrar la lógica de cargar una partida
-        ArrayList<String> partidasGuardadas = Serializacion.listarPartidas(nombreJugador);
+        ArrayList<String> partidasGuardadas = controlador.listarPartidas(nombreJugador);
         if (partidasGuardadas.isEmpty()) {
             consola.append("No hay partidas guardadas.");
             consola.append("Presion ENTER para continuar.\n");
@@ -486,12 +488,8 @@ public class VistaConsola implements IVista {
     // Metodo para renderizar la partida del jugador en turno.
     private void renderInGame() {
         chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        chinchonFrame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                renderExitGame();
-            }
-        });
+        chinchonFrame.removeWindowListener(login);
+        chinchonFrame.addWindowListener(exit);
         limpiarConsola();
         limpiarActionListeners(input, ok);
         // Opciones disponibles
@@ -507,7 +505,7 @@ public class VistaConsola implements IVista {
         // Renderizar Carta Descarte
         consola.append("- Carta Descarte:\n");
         if (controlador.topeDescarte() != null) {
-            for (StringBuilder linea : CartaImagen.getCartaASCII(controlador.topeDescarte())) {
+            for (StringBuilder linea : CartaImagen.getCartaASCII(controlador.topeDescarte().toString())) {
                 consola.append(linea.toString());
                 consola.append("\n");
             }
@@ -515,7 +513,7 @@ public class VistaConsola implements IVista {
         // Renderizar cartas del jugador
         consola.append("Tu mano:\n");
         // Crear las líneas para renderizar las cartas
-        ArrayList<Carta> cartasJugador = controlador.getJugadorCartas(nombreJugador);
+        ArrayList<String> cartasJugador = controlador.getJugadorCartas(nombreJugador);
 
         StringBuilder[] cartaLineas = CartaImagen.getCartasASCII(cartasJugador);
 
@@ -576,12 +574,9 @@ public class VistaConsola implements IVista {
     // Metodo para renderizar la partida del jugador que no esta en turno.
     private void renderWaitingTurn() {
         chinchonFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        chinchonFrame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                renderExitGame();
-            }
-        });
+        chinchonFrame.addWindowListener(exit);
+        chinchonFrame.removeWindowListener(login);
+
         limpiarConsola();
         limpiarActionListeners(input, ok);
         // Opciones disponibles
@@ -594,16 +589,16 @@ public class VistaConsola implements IVista {
         // Renderizar cartas del jugador
         consola.append("Tu mano:\n");
         // Crear las líneas para renderizar las cartas
-        ArrayList<Carta> cartasJugador = controlador.getJugadorCartas(nombreJugador);
+        ArrayList<String> cartasJugador = controlador.getJugadorCartas(nombreJugador);
 
         StringBuilder[] cartaLineas = new StringBuilder[5];
         for (int i = 0; i < cartaLineas.length; i++) {
             cartaLineas[i] = new StringBuilder();
         }
 
-        for (Carta carta : cartasJugador) {
+        for (String carta : cartasJugador) {
             // Convierte cada carta a una representación gráfica
-            String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
+            String[] asciiCarta = new CartaImagen(carta).toASCII();
             for (int i = 0; i < asciiCarta.length; i++) {
                 cartaLineas[i].append(asciiCarta[i]); // Sin espacios entre cartas
             }
@@ -692,16 +687,16 @@ public class VistaConsola implements IVista {
 
         for (String nombre : jugadores) {
             if (controlador.getJugadorActual().equals(nombre)) {
-                renderMano(("Ligaciones de " + nombre + ": "), controlador.getManoGanadora(nombre));
+                renderMano(("\nLigaciones de " + nombre + ": "), controlador.getManoGanadora(nombre));
             } else {
-                renderMano(("Ligaciones de " + nombre + ": "), controlador.getManoPerdedora(nombre));
+                renderMano(("\nLigaciones de " + nombre + ": "), controlador.getManoPerdedora(nombre));
             }
         }
 
         consola.append("\nPresione ENTER para continuar.\n");
     }
 
-    private void renderMano(String titulo, ArrayList<Carta> mano) {
+    private void renderMano(String titulo, ArrayList<String> mano) {
         consola.append(titulo + "\n");
         if (mano.isEmpty()) {
             consola.append("El jugador no tiene ligaciones.");
@@ -712,9 +707,9 @@ public class VistaConsola implements IVista {
                 cartaLineas[i] = new StringBuilder();
             }
 
-            for (Carta carta : mano) {
+            for (String carta : mano) {
                 // Convertir cada carta a su representación gráfica
-                String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
+                String[] asciiCarta = new CartaImagen(carta).toASCII();
                 for (int i = 0; i < asciiCarta.length; i++) {
                     cartaLineas[i].append(asciiCarta[i]);
                 }

@@ -60,19 +60,23 @@ public interface IChinchon extends Serializable, IObservableRemoto {
 
     void ordenarCartasValor(String jugador) throws RemoteException;
 
-    int getCartaPosition(Carta carta) throws RemoteException;
+    int getCartaPosition(String carta) throws RemoteException;
 
     Jugador getJugador(String nombreJugador) throws RemoteException;
 
     int getPuntajeJugador(String nombre) throws RemoteException;
 
-    ArrayList<Carta> getManoGanadora(String nombre) throws RemoteException;
+    ArrayList<String> getManoGanadora(String nombre) throws RemoteException;
 
-    ArrayList<Carta> getManoPerdedora(String nombre) throws RemoteException;
+    ArrayList<String> getManoPerdedora(String nombre) throws RemoteException;
 
     boolean seleccionarJugador(String nombreJugador) throws RemoteException;
 
     int getJugadoresSeleccionados() throws RemoteException;
 
     ArrayList<Integer> getTopVictorias() throws RemoteException;
+
+    ArrayList<String> listarPartidas(String s) throws RemoteException;
+
+    ArrayList<String> getJugadorCartas(String nombreJugador) throws RemoteException;
 }

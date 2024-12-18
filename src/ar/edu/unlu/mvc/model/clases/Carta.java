@@ -2,7 +2,6 @@ package ar.edu.unlu.mvc.model.clases;
 
 import ar.edu.unlu.mvc.model.enumerates.Palo;
 
-import javax.swing.*;
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -65,16 +64,12 @@ public class Carta implements Serializable {
     @Override
     public String toString() {
         if (this.isComodin()) {
-            return "JOKER";
+            return "25-JOKER";
         }
         return getValor() + "-" + getPalo().toString();
     }
 
     public boolean equals(Carta carta) {
         return this.valor == carta.valor && this.palo == carta.palo;
-    }
-
-    public ImageIcon getImagen() {
-       return new ImageIcon( "src/ar/edu/unlu/assets/" + this + ".png");
     }
 }

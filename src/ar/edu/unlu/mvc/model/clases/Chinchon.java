@@ -2,6 +2,7 @@ package ar.edu.unlu.mvc.model.clases;
 
 import ar.edu.unlu.mvc.model.enumerates.EstadoPartida;
 import ar.edu.unlu.mvc.model.enumerates.Eventos;
+import ar.edu.unlu.mvc.model.enumerates.Palo;
 import ar.edu.unlu.mvc.model.interfaces.IChinchon;
 import ar.edu.unlu.rmimvc.observer.ObservableRemoto;
 import ar.edu.unlu.utilities.Cola;
@@ -267,18 +268,26 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     @Override
-    public int getCartaPosition(Carta carta) {
+    public int getCartaPosition(String cartaStr) throws RemoteException {
         ArrayList<Carta> cartas = jugadorActual.getMano().getCartas();
+
+        // Divide el String en valor y palo
+        String[] partes = cartaStr.split("-");
+        int valor = Integer.parseInt(partes[0]);
+        Palo palo = Palo.valueOf(partes[1].toUpperCase());
+
         int index = 1;
         for (Carta c : cartas) {
-            if (carta.getPalo() == c.getPalo() && carta.getValor() == c.getValor()) {
+            // Compara el palo y el valor de la carta
+            if (c.getPalo() == palo && c.getValor() == valor) {
                 return index;
             } else {
                 index++;
             }
         }
-        return 0;
+        return 0; // Devuelve 0 si no se encuentra la carta
     }
+
 
     @Override
     public Jugador getJugador(String nombreJugador) throws RemoteException {
@@ -303,23 +312,33 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     @Override
-    public ArrayList<Carta> getManoGanadora(String nombre) throws RemoteException {
-        Jugador actual = jugadores.getFrente();
-        if (actual.getNombre().equals(nombre)) {
-            return actual.getMano().getLigaciones();
+    public ArrayList<String> getManoGanadora(String nombre) throws RemoteException {
+        ArrayList<String> cartas = new ArrayList<>();
+        if (jugadores.getFrente().getNombre().equals(nombre)) {
+            for (Carta c : jugadores.getFrente().getMano().getLigaciones()) {
+                cartas.add(c.toString());
+            }
         } else {
-            return jugadores.getFondo().getMano().getLigaciones();
+            for (Carta c : jugadores.getFondo().getMano().getLigaciones()) {
+                cartas.add(c.toString());
+            }
         }
+        return cartas;
     }
 
     @Override
-    public ArrayList<Carta> getManoPerdedora(String nombre) throws RemoteException {
-        Jugador actual = jugadores.getFrente();
-        if (actual.getNombre().equals(nombre)) {
-            return actual.getMano().getLigacionesPerdedor();
+    public ArrayList<String> getManoPerdedora(String nombre) throws RemoteException {
+        ArrayList<String> cartas = new ArrayList<>();
+        if (jugadores.getFrente().getNombre().equals(nombre)) {
+            for (Carta c : jugadores.getFrente().getMano().getLigacionesPerdedor()) {
+                cartas.add(c.toString());
+            }
         } else {
-            return jugadores.getFondo().getMano().getLigacionesPerdedor();
+            for (Carta c : jugadores.getFondo().getMano().getLigacionesPerdedor()) {
+                cartas.add(c.toString());
+            }
         }
+        return cartas;
     }
 
     /**
@@ -341,57 +360,57 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      * @return Cantidad de rondas.
      */
     @Override
-    public int getCantidadRondas() {
+    public int getCantidadRondas() throws RemoteException {
         return cantidadRondas;
     }
 
     @Override
-    public EstadoPartida getEstadoDePartida() {
+    public EstadoPartida getEstadoDePartida() throws RemoteException {
         return estadoPartida;
     }
 
     @Override
-    public Top getTop() {
+    public Top getTop() throws RemoteException {
         return Serializacion.cargarTop();
     }
 
     @Override
-    public Cola<Jugador> getJugadores() {
+    public Cola<Jugador> getJugadores() throws RemoteException {
         return jugadores;
     }
 
     @Override
-    public Jugador getGanador() {
+    public Jugador getGanador() throws RemoteException {
         return ganador;
     }
 
     @Override
-    public Jugador getJugadorActual() {
+    public Jugador getJugadorActual() throws RemoteException {
         return jugadores.getFrente();
     }
 
     @Override
-    public Mazo getMazo() {
+    public Mazo getMazo() throws RemoteException {
         return mazo;
     }
 
     @Override
-    public Descarte getDescarte() {
+    public Descarte getDescarte() throws RemoteException {
         return descarte;
     }
 
     @Override
-    public Carta getTopeDescarte() {
+    public Carta getTopeDescarte() throws RemoteException {
         return descarte.getTope();
     }
 
     @Override
-    public int getPuntosMaximos() {
+    public int getPuntosMaximos() throws RemoteException {
         return puntosMaximos;
     }
 
     @Override
-    public void ordenarCartasValor(String jugadorName) {
+    public void ordenarCartasValor(String jugadorName) throws RemoteException {
         Jugador actual = jugadores.getFrente();
         while (actual != null) {
             // Aplica tu función aquí
@@ -404,7 +423,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     @Override
-    public void ordenarCartasPalo(String jugadorName) {
+    public void ordenarCartasPalo(String jugadorName) throws RemoteException {
         Jugador actual = jugadores.getFrente();
         while (actual != null) {
             // Aplica tu función aquí
@@ -426,6 +445,27 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             return true; // Selección exitosa
         }
         return false; // Jugador ya seleccionado
+    }
+
+    @Override
+    public ArrayList<String> listarPartidas(String s) throws RemoteException {
+        return Serializacion.listarPartidas(s);
+    }
+
+    @Override
+    public ArrayList<String> getJugadorCartas(String nombreJugador) throws RemoteException {
+        Jugador actual = jugadores.getFrente();
+        ArrayList<String> cartas = new ArrayList<>();
+        for (int i = 0; i < jugadores.size(); i++) {
+            if (actual.getNombre().equals(nombreJugador)) {
+                for (Carta carta : actual.getMano().getCartas()) {
+                    cartas.add(carta.toString());
+                }
+                return cartas;
+            }
+            actual = jugadores.getFondo();
+        }
+        return null;
     }
 
     @Override
@@ -560,7 +600,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     private void terminarPartida() throws RemoteException {
         Jugador actual = jugadores.getFrente();
         while (actual != null) {
-            if (actual.getPuntaje() >= puntosMaximos) {
+            if (actual.getPuntaje() < puntosMaximos) {
                 ganador = actual;
                 top.agregarAlTop(ganador);
                 break;

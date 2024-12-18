@@ -131,9 +131,9 @@ public class JuegoTest {
             juego.getJugadorActual().agregarCarta(new Carta(5, Palo.ESPADA));
             juego.getJugadorActual().agregarCarta(new Carta(6, Palo.ESPADA));
             juego.getJugadorActual().agregarCarta(new Carta(7, Palo.ESPADA));
-            juego.getJugadorActual().agregarCarta(new Carta(8, Palo.ESPADA));
+            juego.getJugadorActual().agregarCarta(new Comodin());
 
-            juego.getCartaPosition(new Carta(2, Palo.ESPADA));
+            System.out.println(juego.getCartaPosition("25-JOKER"));
 
         } catch (RemoteException e) {
             throw new RuntimeException(e);
