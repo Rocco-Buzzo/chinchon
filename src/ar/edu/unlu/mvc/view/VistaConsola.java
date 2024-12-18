@@ -4,6 +4,7 @@ import ar.edu.unlu.mvc.controller.Controlador;
 import ar.edu.unlu.mvc.model.clases.Carta;
 import ar.edu.unlu.mvc.model.clases.Serializacion;
 
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -55,8 +56,52 @@ public class VistaConsola implements IVista {
 
     @Override
     public void loadGame() {
-        controlador.continuarPartida();
-        iniciarTurnos();
+        limpiarConsola();
+        limpiarActionListeners(input, ok);
+        deleteJugador();
+        // Obtener nombres de jugadores disponibles desde el controlador
+        ArrayList<String> nombresJugadores = controlador.nombreJugadores();
+
+        // Verificar que hay jugadores disponibles
+        if (nombresJugadores.size() == 2) {
+            consola.append("Seleccione qué jugador desea ser:\n");
+            consola.append("1. " + nombresJugadores.get(0) + "\n");
+            consola.append("2. " + nombresJugadores.get(1) + "\n");
+
+            // ActionListener para elegir jugador
+            ActionListener loadGameAction = _ -> {
+                String opcion = input.getText().trim();
+                input.setText(""); // Limpiar el inputField
+
+                if (opcion.equals("1") || opcion.equals("2")) {
+                    int seleccion = Integer.parseInt(opcion) - 1; // Convertir a índice
+                    String nombreSeleccionado = nombresJugadores.get(seleccion);
+
+                    // Bloquear el nombre seleccionado en el controlador
+                    if (controlador.seleccionarJugador(nombreSeleccionado)) {
+                        consola.append("Has seleccionado el jugador: " + nombreSeleccionado + "\n");
+                        setJugador(nombreSeleccionado); // Asignar el nombre a la vista
+                        if (controlador.jugadoresSeleccionadosSize() == 2) {
+                            controlador.iniciarPartida();
+                        } else {
+                            renderWaitingPlayers();
+                        }
+                    } else {
+                        consola.append("El jugador '" + nombreSeleccionado + "' ya fue seleccionado. Intenta nuevamente.\n");
+                    }
+                } else {
+                    consola.append("\nOpción no válida. Por favor, ingresa 1 o 2.\n");
+                }
+            };
+
+            // Asignar el listener al inputField y botón OK
+            input.addActionListener(loadGameAction);
+            ok.addActionListener(loadGameAction);
+        }
+    }
+
+    private void deleteJugador() {
+        this.nombreJugador = null;
     }
 
     @Override
@@ -68,28 +113,7 @@ public class VistaConsola implements IVista {
         consola.append("Cerrando ronda.\n\n");
         consola.append("¡Ronda terminada!\n");
         consola.append("Ganador: " + controlador.getJugadorActual() + "\n\n");
-        consola.append("Mano ganadora: \n");
-
-        // Crear las líneas para renderizar las cartas
-        ArrayList<Carta> manoGanadora = controlador.getManoGanadora();
-
-        StringBuilder[] cartaLineas = new StringBuilder[5];
-        for (int i = 0; i < cartaLineas.length; i++) {
-            cartaLineas[i] = new StringBuilder();
-        }
-
-        for (Carta carta : manoGanadora) {
-            // Convierte cada carta a una representación gráfica
-            String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
-            for (int i = 0; i < asciiCarta.length; i++) {
-                cartaLineas[i].append(asciiCarta[i]); // Sin espacios entre cartas
-            }
-        }
-        // Agregar las líneas de las cartas a la consola
-        for (StringBuilder linea : cartaLineas) {
-            consola.append(linea.toString());
-            consola.append("\n");
-        }
+        renderManosFinales();
         consola.append("Jugadores en partida:\n");
         for (String jugador : jugadores) {
             consola.append("- " + jugador + " puntaje: " + controlador.getPuntaje(jugador) + "\n");
@@ -127,30 +151,8 @@ public class VistaConsola implements IVista {
         consola.append(mensaje + "\n\n");
 
         // Mostrar mano ganadora solo si no se guardó la partida y no fue cancelada
-        if (!guardado && controlador.getGanador() != null && !controlador.getGanador().isEmpty()) {
-            consola.append("Mano ganadora:\n");
-
-            // Crear las líneas para renderizar las cartas
-            ArrayList<Carta> manoGanadora = controlador.getManoGanadora();
-
-            StringBuilder[] cartaLineas = new StringBuilder[5];
-            for (int i = 0; i < cartaLineas.length; i++) {
-                cartaLineas[i] = new StringBuilder();
-            }
-
-            for (Carta carta : manoGanadora) {
-                // Convierte cada carta a una representación gráfica
-                String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
-                for (int i = 0; i < asciiCarta.length; i++) {
-                    cartaLineas[i].append(asciiCarta[i]); // Sin espacios entre cartas
-                }
-            }
-
-            // Agregar las líneas de las cartas a la consola
-            for (StringBuilder linea : cartaLineas) {
-                consola.append(linea.toString());
-                consola.append("\n");
-            }
+        if (controlador.getGanador() != null) {
+            renderManosFinales();
         }
 
         // Mostrar puntajes finales de todos los jugadores
@@ -165,7 +167,7 @@ public class VistaConsola implements IVista {
         // Acción para cerrar el juego
         ActionListener exitGame = _ -> {
             input.setText("");
-            System.exit(0);
+            renderMenu();
         };
 
         input.addActionListener(exitGame);
@@ -221,6 +223,13 @@ public class VistaConsola implements IVista {
 
     // Metodo para renderizar el login del jugador.
     private void renderPlayerLogin() {
+        chinchonFrame.removeWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                renderExitGame();
+            }
+        });
+        chinchonFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         title();
         consola.append("Bienvenido al juego. Por favor, ingresa tu nombre para continuar.\n");
 
@@ -243,13 +252,21 @@ public class VistaConsola implements IVista {
     private void renderMenu() {
         limpiarConsola(); // Limpiar la consola antes de mostrar el menú
         title();
+        chinchonFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        chinchonFrame.removeWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                renderExitGame();
+            }
+        });
         consola.append("Bienvenido, " + nombreJugador + "!\n\n");
         consola.append("Menú principal:\n");
         consola.append("1. Nueva partida\n");
         consola.append("2. Cargar partida\n");
         consola.append("3. Unirse a partida\n");
-        consola.append("4. Reglas\n");
-        consola.append("5. Salir\n");
+        consola.append("4. Ranking de Mejores Jugadores\n");
+        consola.append("5. Reglas\n");
+        consola.append("6. Salir\n");
 
         limpiarActionListeners(input, ok);
 
@@ -269,11 +286,13 @@ public class VistaConsola implements IVista {
                     renderJoinGame();
                     break;
                 case "4":
-                    renderRules();
+                    renderTopJugadores();
                     break;
                 case "5":
-                    consola.append("Gracias por jugar. ¡Hasta luego!\n");
-                    System.exit(0); // Salir del programa
+                    renderRules();
+                    break;
+                case "6":
+                    renderPlayerLogin();
                     break;
                 default:
                     consola.append("Opción no válida. Por favor, selecciona una opción del menú.\n");
@@ -286,6 +305,36 @@ public class VistaConsola implements IVista {
         input.addActionListener(menuAction); // Enter en el campo de texto
         ok.addActionListener(menuAction);  // Click en el botón OK
     }
+
+    private void renderTopJugadores() {
+        limpiarConsola();
+        limpiarActionListeners(input, ok);
+        ArrayList<String> topCargado = controlador.getTop();
+        ArrayList<Integer> victorias = controlador.getVictorias();
+
+        if (topCargado.isEmpty() || victorias.isEmpty()) {
+            consola.append("El top 5 de jugadores está vacío.\n");
+        } else {
+            consola.append("Top 5 de jugadores:\n");
+            String encabezados = String.format("%-10s %-20s %s\n", "Puesto", "Nombre", "Victorias");
+            consola.append(encabezados);
+
+            // Verifica que ambas listas tengan el mismo tamaño antes de iterar
+            int size = Math.min(topCargado.size(), victorias.size());
+            for (int i = 0; i < size; i++) {
+                String fila = String.format("%-10d %-20s %d\n", (i + 1), topCargado.get(i), victorias.get(i));
+                consola.append(fila);
+            }
+        }
+        consola.append("\n\nPresiona ENTER para volver al menú.");
+        ActionListener menuAction = _ -> {
+            input.setText("");
+            renderMenu();
+        };
+        input.addActionListener(menuAction);
+        ok.addActionListener(menuAction);
+    }
+
 
     // Métodos correspondientes al menú
     // 1. Renderiza el menu para seleccionar las configuraciones de la partida
@@ -520,7 +569,6 @@ public class VistaConsola implements IVista {
                     break;
             }
         };
-
         input.addActionListener(inGameListener);
         ok.addActionListener(inGameListener);
     }
@@ -633,6 +681,51 @@ public class VistaConsola implements IVista {
         };
         input.addActionListener(exitGameAction); // Asociar el listener al campo de texto
         ok.addActionListener(exitGameAction);   // Asociar el listener al botón OK
+    }
+
+    private void renderManosFinales() {
+        ArrayList<String> jugadores = controlador.nombreJugadores();
+        if (jugadores == null || jugadores.size() < 2) {
+            consola.append("Error: No hay suficientes jugadores para mostrar las manos.\n");
+            return;
+        }
+
+        for (String nombre : jugadores) {
+            if (controlador.getJugadorActual().equals(nombre)) {
+                renderMano(("Ligaciones de " + nombre + ": "), controlador.getManoGanadora(nombre));
+            } else {
+                renderMano(("Ligaciones de " + nombre + ": "), controlador.getManoPerdedora(nombre));
+            }
+        }
+
+        consola.append("\nPresione ENTER para continuar.\n");
+    }
+
+    private void renderMano(String titulo, ArrayList<Carta> mano) {
+        consola.append(titulo + "\n");
+        if (mano.isEmpty()) {
+            consola.append("El jugador no tiene ligaciones.");
+        } else {
+            // Crear las líneas para renderizar las cartas
+            StringBuilder[] cartaLineas = new StringBuilder[5];
+            for (int i = 0; i < cartaLineas.length; i++) {
+                cartaLineas[i] = new StringBuilder();
+            }
+
+            for (Carta carta : mano) {
+                // Convertir cada carta a su representación gráfica
+                String[] asciiCarta = new CartaImagen(carta.getValor(), carta.getPalo()).toASCII();
+                for (int i = 0; i < asciiCarta.length; i++) {
+                    cartaLineas[i].append(asciiCarta[i]);
+                }
+            }
+
+            // Agregar las líneas de las cartas a la consola
+            for (StringBuilder linea : cartaLineas) {
+                consola.append(linea.toString());
+                consola.append("\n");
+            }
+        }
     }
 
     // Opciones del Jugador
@@ -754,7 +847,6 @@ public class VistaConsola implements IVista {
             controlador.guardarPartida("", false);
             consola.append("Saliendo del juego sin guardar...\n");
         }
-        // controlador.resetGame();
     }
 
     // Metodo para limpiar la consola

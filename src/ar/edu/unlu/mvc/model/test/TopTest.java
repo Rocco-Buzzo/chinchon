@@ -1,9 +1,14 @@
 package ar.edu.unlu.mvc.model.test;
 
+import ar.edu.unlu.mvc.model.clases.Chinchon;
 import ar.edu.unlu.mvc.model.clases.Jugador;
 import ar.edu.unlu.mvc.model.clases.Serializacion;
 import ar.edu.unlu.mvc.model.clases.Top;
+import ar.edu.unlu.mvc.model.interfaces.IChinchon;
 import org.junit.Test;
+
+import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 
@@ -41,8 +46,19 @@ public class TopTest {
         System.out.printf("%-10s %-20s %s\n","Puesto", "Nombre", "Victorias");
 
         for (int i = 0; i < Math.min(5, topCargado.getTop().size()); i++) {
-            Jugador jugador = topCargado.getTop().get(i);
-            System.out.printf("%-10d %-20s %d\n", (i+1), jugador.getNombre(), jugador.getVictorias());
+            String jugador = topCargado.getTop().get(i);
+            System.out.printf("%-10d %-20s\n", (i+1), jugador);
+        }
+    }
+
+    @Test
+    public void testVerTopFive() throws RemoteException {
+        IChinchon iChinchon = new Chinchon();
+        Top top = iChinchon.getTop();
+        ArrayList<String> jugadors = top.getTop();
+        for (String j : jugadors) {
+            System.out.println(j);
+            System.out.println(iChinchon.getPuntajeJugador(j));
         }
     }
 }

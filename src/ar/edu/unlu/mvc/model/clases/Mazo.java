@@ -3,15 +3,23 @@ package ar.edu.unlu.mvc.model.clases;
 import ar.edu.unlu.mvc.model.enumerates.Palo;
 import ar.edu.unlu.utilities.Pila;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class Mazo extends Pila {
+    @Serial
+    private static final long serialVersionUID = 10L;
     private final boolean contieneComodin;
     private final int sizeInicial;
 
     private static final int[] VALORES40 = {1, 2, 3, 4, 5, 6, 7, 10, 11, 12};
     private static final int[] VALORES48 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+
+    public Mazo() {
+        this.sizeInicial = 0;
+        this.contieneComodin = false;
+    }
 
     public Mazo(boolean contiene, int cantidadCartas) {
         contieneComodin = contiene;

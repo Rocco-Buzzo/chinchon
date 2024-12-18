@@ -49,7 +49,19 @@ public class Top implements Serializable {
      * Devuelve el top.
      * @return ArrayList<Jugador>
      */
-    public ArrayList<Jugador> getTop() {
-        return this.top;
+    public ArrayList<String> getTop() {
+        ArrayList<String> jugadores = new ArrayList<>();
+        for (Jugador j : Serializacion.cargarTop().top) {
+            jugadores.add(j.getNombre());
+        }
+        return jugadores;
+    }
+
+    public ArrayList<Integer> getTopVictorias() {
+        ArrayList<Integer> jugadores = new ArrayList<>();
+        for (Jugador j : Serializacion.cargarTop().top) {
+            jugadores.add(j.getVictorias());
+        }
+        return jugadores;
     }
 }

@@ -215,25 +215,25 @@ public class ManoTest {
         // Caso verdadero: Escalera de 3 y escalera de 4.
         assertTrue(mano.puedeCerrar());
 
-//        mano = new Mano();
-//        mano.agregarCarta(new Carta(1, Palo.COPA));
-//        mano.agregarCarta(new Carta(1, Palo.ESPADA));
-//        mano.agregarCarta(new Carta(1, Palo.BASTO));
-//        mano.agregarCarta(new Carta(1, Palo.ORO));
-//        mano.agregarCarta(new Carta(12, Palo.BASTO));
-//        mano.agregarCarta(new Carta(12, Palo.COPA));
-//        mano.agregarCarta(new Carta(12, Palo.ESPADA));
-//        assertTrue(mano.puedeCerrar());
-//
-//        mano = new Mano();
-//        mano.agregarCarta(new Carta(1, Palo.COPA));
-//        mano.agregarCarta(new Carta(1, Palo.ESPADA));
-//        mano.agregarCarta(new Carta(1, Palo.BASTO));
-//        mano.agregarCarta(new Carta(12, Palo.ORO));
-//        mano.agregarCarta(new Carta(12, Palo.BASTO));
-//        mano.agregarCarta(new Carta(12, Palo.COPA));
-//        mano.agregarCarta(new Carta(9, Palo.ESPADA));
-//        assertFalse(mano.puedeCerrar());
+        mano = new Mano();
+        mano.agregarCarta(new Carta(1, Palo.COPA));
+        mano.agregarCarta(new Carta(1, Palo.ESPADA));
+        mano.agregarCarta(new Carta(1, Palo.BASTO));
+        mano.agregarCarta(new Carta(1, Palo.ORO));
+        mano.agregarCarta(new Carta(12, Palo.BASTO));
+        mano.agregarCarta(new Carta(12, Palo.COPA));
+        mano.agregarCarta(new Carta(12, Palo.ESPADA));
+        assertTrue(mano.puedeCerrar());
+
+        mano = new Mano();
+        mano.agregarCarta(new Carta(1, Palo.COPA));
+        mano.agregarCarta(new Carta(1, Palo.ESPADA));
+        mano.agregarCarta(new Carta(1, Palo.BASTO));
+        mano.agregarCarta(new Carta(12, Palo.ORO));
+        mano.agregarCarta(new Carta(12, Palo.BASTO));
+        mano.agregarCarta(new Carta(12, Palo.COPA));
+        mano.agregarCarta(new Carta(9, Palo.ESPADA));
+        assertFalse(mano.puedeCerrar());
     }
 
     @Test
@@ -370,7 +370,8 @@ public class ManoTest {
         mano.agregarCarta(new Carta(6, Palo.ORO));
         mano.agregarCarta(new Carta(7, Palo.ORO));
 
-        ArrayList<Carta> manoGanadora = mano.getManoGanadora();
+        System.out.println("Mano Ganadora: ");
+        ArrayList<Carta> manoGanadora = mano.getLigaciones();
         for (Carta c : manoGanadora) {
             System.out.println(c);
         }
@@ -380,13 +381,61 @@ public class ManoTest {
         mano.agregarCarta(new Carta(2, Palo.COPA));
         mano.agregarCarta(new Carta(3, Palo.COPA));
         mano.agregarCarta(new Carta(4, Palo.COPA));
-        mano.agregarCarta(new Carta(5, Palo.COPA));
-        mano.agregarCarta(new Carta(6, Palo.COPA));
-        mano.agregarCarta(new Carta(7, Palo.COPA));
+        mano.agregarCarta(new Carta(5, Palo.ESPADA));
+        mano.agregarCarta(new Carta(6, Palo.BASTO));
+        mano.agregarCarta(new Carta(7, Palo.BASTO));
 
-        manoGanadora.clear();
-        manoGanadora = mano.getManoGanadora();
-        for (Carta c : manoGanadora) {
+        System.out.println("Mano Perdedora: ");
+        ArrayList<Carta> manoPerdedora = mano.getLigacionesPerdedor();
+        for (Carta c : manoPerdedora) {
+            System.out.println(c);
+        }
+
+        mano = new Mano();
+        mano.agregarCarta(new Carta(1, Palo.COPA));
+        mano.agregarCarta(new Carta(2, Palo.COPA));
+        mano.agregarCarta(new Carta(3, Palo.COPA));
+        mano.agregarCarta(new Carta(6, Palo.COPA));
+        mano.agregarCarta(new Carta(6, Palo.ESPADA));
+        mano.agregarCarta(new Carta(6, Palo.BASTO));
+        mano.agregarCarta(new Carta(7, Palo.BASTO));
+
+        System.out.println("Mano Perdedora: ");
+        manoPerdedora.clear();
+        manoPerdedora = mano.getLigacionesPerdedor();
+        for (Carta c : manoPerdedora) {
+            System.out.println(c);
+        }
+
+        mano = new Mano();
+        mano.agregarCarta(new Carta(1, Palo.COPA));
+        mano.agregarCarta(new Carta(2, Palo.COPA));
+        mano.agregarCarta(new Carta(3, Palo.COPA));
+        mano.agregarCarta(new Carta(8, Palo.COPA));
+        mano.agregarCarta(new Carta(6, Palo.ESPADA));
+        mano.agregarCarta(new Carta(6, Palo.BASTO));
+        mano.agregarCarta(new Carta(7, Palo.BASTO));
+
+        System.out.println("Mano Perdedora: ");
+        manoPerdedora.clear();
+        manoPerdedora = mano.getLigacionesPerdedor();
+        for (Carta c : manoPerdedora) {
+            System.out.println(c);
+        }
+
+        mano = new Mano();
+        mano.agregarCarta(new Carta(1, Palo.ORO));
+        mano.agregarCarta(new Comodin());
+        mano.agregarCarta(new Carta(1, Palo.ESPADA));
+        mano.agregarCarta(new Carta(1, Palo.BASTO));
+        mano.agregarCarta(new Carta(6, Palo.ESPADA));
+        mano.agregarCarta(new Carta(6, Palo.BASTO));
+        mano.agregarCarta(new Carta(7, Palo.ORO));
+
+        System.out.println("Mano Perdedora: ");
+        manoPerdedora.clear();
+        manoPerdedora = mano.getLigacionesPerdedor();
+        for (Carta c : manoPerdedora) {
             System.out.println(c);
         }
     }

@@ -18,6 +18,22 @@ public class Controlador implements IControladorRemoto {
         setVista(vista);
     }
 
+    public boolean seleccionarJugador(String nombreJugador) {
+        try {
+            return iChinchon.seleccionarJugador(nombreJugador);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int jugadoresSeleccionadosSize() {
+        try {
+            return iChinchon.getJugadoresSeleccionados();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void setVista(IVista vista) {
         this.iVista = vista;
         this.iVista.setControlador(this);
@@ -199,10 +215,34 @@ public class Controlador implements IControladorRemoto {
         }
     }
 
-    public ArrayList<Carta> getManoGanadora() {
+    public ArrayList<Carta> getManoGanadora(String nombre) {
         try {
-            return iChinchon.getManoGanadora();
+            return iChinchon.getManoGanadora(nombre);
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ArrayList<Carta> getManoPerdedora(String nombre) {
+        try {
+            return iChinchon.getManoPerdedora(nombre);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ArrayList<Integer> getVictorias() {
+        try {
+            return iChinchon.getTopVictorias();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ArrayList<String> getTop() {
+        try {
+            return iChinchon.getTop().getTop();
+        } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
     }
@@ -225,5 +265,6 @@ public class Controlador implements IControladorRemoto {
             }
         }
     }
+
 
 }

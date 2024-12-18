@@ -9,7 +9,9 @@ import ar.edu.unlu.utilities.Cola;
 import java.io.Serial;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class Chinchon extends ObservableRemoto implements IChinchon {
     @Serial
@@ -25,6 +27,7 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     private boolean contieneComodin = false;
     private int cantCartas = 0;
     private EstadoPartida estadoPartida = EstadoPartida.ESTABLECIENDO;
+    private static final Set<String> jugadoresSeleccionados = new HashSet<>();
 
     /**
      * iniciarPartida()
@@ -36,7 +39,9 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      */
     @Override
     public void iniciarPartida() throws RemoteException {
-        if (jugadores.size() == 2) {
+        if (estadoPartida.equals(EstadoPartida.JUGANDO)) {
+            notificarObservadores(Eventos.PARTIDA_INICIADA);
+        } else if ((jugadores.size() == 2 && estadoPartida.equals(EstadoPartida.ESTABLECIENDO))) {
             mazo = new Mazo(contieneComodin, cantCartas);
             sortearTurno();
             repartir();
@@ -86,7 +91,6 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
             puntosMaximos = iJuego.getPuntosMaximos();
             contieneComodin = iJuego.getMazo().isContieneComodin();
             top = getTop();
-            estadoPartida = EstadoPartida.JUGANDO;
             notificarObservadores(Eventos.PARTIDA_CARGADA);
             return true;
         } else {
@@ -106,11 +110,10 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         if (guardar) {
             Serializacion.guardarPartida(this, nombreArchivo);
             notificarObservadores(Eventos.PARTIDA_GUARDADA);
-            reset();
         } else {
             notificarObservadores(Eventos.PARTIDA_CANCELADA);
-            reset();
         }
+        reset();
     }
 
     /**
@@ -144,18 +147,13 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
      */
     @Override
     public void continuarPartida() throws RemoteException {
-        // Limpiar cartas de los jugadores
         vaciarCartas();
-
-        // Limpiar mazo y descarte
         mazo = new Mazo(getMazo().isContieneComodin(), getMazo().getSizeInicial());
         descarte = new Descarte();
-        // Reiniciar turno
         sortearTurno();
-        // Repartir cartas nuevamente
         repartir();
-        // Poner carta en el descarte
         descarte.apilar(mazo.sacar());
+        estadoPartida = EstadoPartida.JUGANDO;
     }
 
     /**
@@ -305,8 +303,23 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     @Override
-    public ArrayList<Carta> getManoGanadora() throws RemoteException {
-        return jugadorActual.getMano().getManoGanadora();
+    public ArrayList<Carta> getManoGanadora(String nombre) throws RemoteException {
+        Jugador actual = jugadores.getFrente();
+        if (actual.getNombre().equals(nombre)) {
+            return actual.getMano().getLigaciones();
+        } else {
+            return jugadores.getFondo().getMano().getLigaciones();
+        }
+    }
+
+    @Override
+    public ArrayList<Carta> getManoPerdedora(String nombre) throws RemoteException {
+        Jugador actual = jugadores.getFrente();
+        if (actual.getNombre().equals(nombre)) {
+            return actual.getMano().getLigacionesPerdedor();
+        } else {
+            return jugadores.getFondo().getMano().getLigacionesPerdedor();
+        }
     }
 
     /**
@@ -403,6 +416,28 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
         }
     }
 
+    @Override
+    public boolean seleccionarJugador(String nombreJugador) throws RemoteException {
+        if (!jugadoresSeleccionados.contains(nombreJugador)) {
+            jugadoresSeleccionados.add(nombreJugador);
+            if (jugadoresSeleccionados.size() == 2) {
+                continuarPartida();
+            }
+            return true; // Selección exitosa
+        }
+        return false; // Jugador ya seleccionado
+    }
+
+    @Override
+    public int getJugadoresSeleccionados() throws RemoteException {
+        return jugadoresSeleccionados.size();
+    }
+
+    @Override
+    public ArrayList<Integer> getTopVictorias() throws RemoteException {
+        return top.getTopVictorias();
+    }
+
     private void vaciarCartas() {
         for (int i = 0; i < jugadores.size(); i++) {
             Jugador jAux;
@@ -425,17 +460,37 @@ public class Chinchon extends ObservableRemoto implements IChinchon {
     }
 
     private void reset() throws RemoteException {
-        mazo = null;
-        descarte = new Descarte();
-        jugadores = new Cola<>();
-        jugadorActual = null;
-        ganador = new Jugador("");
-        top = new Top();
-        puntosMaximos = 0;
-        cantidadRondas = 1;
-        contieneComodin = false;
-        cantCartas = 0;
-        estadoPartida = EstadoPartida.ESTABLECIENDO;
+        jugadoresSeleccionados.clear();
+        // Reiniciar el mazo
+        mazo = new Mazo();  // Crear una nueva instancia del mazo (si es necesario)
+
+        // Reiniciar el descarte
+        descarte = new Descarte();  // Crear una nueva instancia del descarte
+
+        // Reiniciar la cola de jugadores
+        jugadores = new Cola<>();  // Reiniciar la cola de jugadores
+
+        // Reiniciar el jugador actual
+        jugadorActual = null;  // Establecer jugador actual como null (se puede reasignar después)
+
+        // Reiniciar el ganador
+        ganador = new Jugador("");  // Crear un nuevo jugador vacío como ganador
+
+        // Reiniciar la clase Top (suponiendo que es parte de un sistema de puntajes)
+        top = new Top();  // Crear una nueva instancia de Top
+
+        // Reiniciar los puntos máximos y cantidad de rondas
+        puntosMaximos = 0;  // Restablecer los puntos máximos a 0
+        cantidadRondas = 1;  // Restablecer la cantidad de rondas a 1
+
+        // Reiniciar el comodín
+        contieneComodin = false;  // Establecer que no hay comodín
+
+        // Reiniciar la cantidad de cartas
+        cantCartas = 0;  // Restablecer la cantidad de cartas a 0
+
+        // Reiniciar el estado de la partida
+        estadoPartida = EstadoPartida.ESTABLECIENDO;  // Establecer el estado de la partida como "ESTABLECIENDO"
     }
 
     /**

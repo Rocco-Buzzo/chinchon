@@ -40,91 +40,46 @@ public class VistaGrafica implements IVista {
     public void cerrarRonda() {
         JPanel cerrarPane = jPanelMap.get("cerrar-pane");
         cerrarPane.removeAll();
-        cerrarPane.setLayout(new BoxLayout(cerrarPane, BoxLayout.Y_AXIS)); // Layout en columna
+        cerrarPane.setLayout(new BoxLayout(cerrarPane, BoxLayout.Y_AXIS));
         cerrarPane.setBackground(BACKGROUND_COLOR);
 
         ArrayList<String> jugadores = controlador.nombreJugadores();
+        if (jugadores == null || jugadores.isEmpty()) {
+            mostrarError(cerrarPane);
+            return;
+        }
 
         // Mensaje de fin de ronda
-        JLabel rondaTerminada = new JLabel("¡Ronda terminada!");
-        rondaTerminada.setFont(new Font("Arial", Font.BOLD, 32));
-        rondaTerminada.setForeground(Color.YELLOW);
-        rondaTerminada.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        cerrarPane.add(rondaTerminada);
+        cerrarPane.add(crearEtiqueta("¡Ronda terminada!", 32, Color.YELLOW));
 
-        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio entre elementos
-        JLabel ganador = new JLabel("Ganador: " + controlador.getJugadorActual());
-        ganador.setFont(new Font("Arial", Font.BOLD, 24));
-        ganador.setForeground(Color.WHITE);
-        ganador.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        cerrarPane.add(ganador);
-        JLabel manoGanadora = new JLabel("Mano ganadora: ");
-        manoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
-        manoGanadora.setForeground(Color.WHITE);
-        manoGanadora.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        cerrarPane.add(manoGanadora);
-
-        Dimension buttonSize = new Dimension(113, 200);
-
-        JPanel manoGanadoraPane = new JPanel(new FlowLayout());
-        manoGanadoraPane.setBackground(BACKGROUND_COLOR);
-        for (Carta c : controlador.getManoGanadora()) {
-            JButton button = new JButton();
-            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
-            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
-            button.setIcon(new ImageIcon(imagenRedimensionada));
-            button.setBackground(BACKGROUND_COLOR);
-            button.setPreferredSize(buttonSize);
-            manoGanadoraPane.add(button);
+        // Mostrar ganador y mano ganadora
+        cerrarPane.add(Box.createVerticalStrut(20));
+        cerrarPane.add(crearEtiqueta("Ganador: " + controlador.getJugadorActual(), 24, Color.WHITE));
+        cerrarPane.add(crearEtiqueta("Manos en mesa:", 24, Color.WHITE));
+        for (String nombre : jugadores) {
+            cerrarPane.add(crearEtiqueta(("Ligaciones de " + nombre + ": "), 24, Color.WHITE));
+            if (controlador.getJugadorActual().equals(nombre)) {
+                cerrarPane.add(crearPanelMano(controlador.getManoGanadora(nombre)));
+            } else {
+                cerrarPane.add(crearPanelMano(controlador.getManoPerdedora(nombre)));
+            }
         }
-        cerrarPane.add(manoGanadoraPane);
 
-        // Mostrar los puntajes
+        // Mostrar puntajes
+        cerrarPane.add(Box.createVerticalStrut(5));
         for (String jugador : jugadores) {
             int puntos = controlador.getPuntaje(jugador);
-            String mensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
-            JLabel puntajes = new JLabel(mensaje);
-            puntajes.setFont(new Font("Arial", Font.BOLD, 24));
-            puntajes.setForeground(Color.WHITE);
-            puntajes.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-            cerrarPane.add(puntajes);
+            cerrarPane.add(crearEtiqueta(String.format("El jugador %s tiene %d puntos.", jugador, puntos), 24, Color.WHITE));
         }
 
-        cerrarPane.add(Box.createVerticalStrut(30)); // Espacio entre los puntajes y el botón
+        cerrarPane.add(Box.createVerticalStrut(10));
 
-        // Panel para el botón y el contador de jugadores listos
-        JPanel readyPanel = new JPanel(new FlowLayout());
-        readyPanel.setBackground(BACKGROUND_COLOR);
+        // Agregar el botón de continuar y el contador de jugadores listos
+        cerrarPane.add(crearPanelContinuar(jugadores.size()));
 
-        JLabel readyLabel = new JLabel("Jugadores listos: 0/" + jugadores.size());
-        readyLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        readyLabel.setForeground(Color.WHITE);
-
-        JButton btnContinuar = new JButton("Continuar");
-        btnContinuar.setFont(new Font("Arial", Font.BOLD, 18));
-        btnContinuar.setPreferredSize(new Dimension(200, 50));
-        btnContinuar.setBackground(new Color(135, 255, 75));
-        btnContinuar.setForeground(Color.BLACK);
-
-        // Lógica del botón para actualizar el contador y verificar la condición
-        final int[] jugadoresListos = {0}; // Contador de jugadores listos
-        btnContinuar.addActionListener(_ -> {
-            jugadoresListos[0]++;
-            readyLabel.setText("Jugadores listos: " + jugadoresListos[0] + "/" + jugadores.size());
-
-            if (jugadoresListos[0] == jugadores.size() / 2) {
-                iniciarTurnos(); // Llamar a la función iniciarTurnos cuando haya 2 listos
-            }
-        });
-
-        readyPanel.add(btnContinuar);
-        readyPanel.add(readyLabel);
-        cerrarPane.add(readyPanel);
-        cerrarPane.add(Box.createVerticalStrut(20)); // Espacio final
-
+        cerrarPane.add(Box.createVerticalStrut(20));
         cerrarPane.revalidate();
         cerrarPane.repaint();
-        // Actualizar el panel principal
         cardLayout.show(cardPane, "cerrar-pane");
     }
 
@@ -150,8 +105,62 @@ public class VistaGrafica implements IVista {
 
     @Override
     public void loadGame() {
-        controlador.continuarPartida();
-        iniciarTurnos();
+        // Limpiar el panel antes de agregar contenido
+        JPanel seleccionarPane = jPanelMap.get("seleccionar-pane");
+        seleccionarPane.removeAll();
+        seleccionarPane.setLayout(new GridBagLayout()); // Configurar GridBagLayout
+        seleccionarPane.setBackground(BACKGROUND_COLOR);
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Configurar restricciones para centrar el contenido
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 0; // Columna 0
+        gbc.gridy = 0; // Fila 0
+
+        // Título del panel
+        JLabel titulo = new JLabel("Seleccione qué jugador desea ser:");
+        titulo.setForeground(Color.white);
+        titulo.setBackground(BACKGROUND_COLOR);
+        titulo.setFont(BTN_FONT);
+        titulo.setHorizontalAlignment(SwingConstants.CENTER);
+        seleccionarPane.add(titulo, gbc);
+
+        // Obtener nombres de jugadores disponibles
+        ArrayList<String> nombresJugadores = controlador.nombreJugadores();
+
+        // Panel central con opciones
+        JPanel opcionesPane = new JPanel();
+        opcionesPane.setBackground(BACKGROUND_COLOR);
+        opcionesPane.setLayout(new BoxLayout(opcionesPane, BoxLayout.Y_AXIS));
+        ButtonGroup group = new ButtonGroup();
+        JRadioButton[] opciones = new JRadioButton[nombresJugadores.size()];
+
+        for (int i = 0; i < nombresJugadores.size(); i++) {
+            String jugador = nombresJugadores.get(i);
+            JRadioButton opcion = new JRadioButton(jugador);
+            opcion.setFont(BTN_FONT);
+            opcion.setBackground(BACKGROUND_COLOR);
+            opcion.setForeground(Color.white);
+            group.add(opcion);
+            opcionesPane.add(opcion);
+            opciones[i] = opcion;
+        }
+
+        // Agregar el panel de opciones al panel principal y centrarlo
+        gbc.gridy = 1; // Fila 1 (debajo del título)
+        seleccionarPane.add(opcionesPane, gbc);
+
+        // Botón para confirmar selección
+        JButton confirmar = seleccionarButton(opciones);
+
+        // Agregar el botón de confirmar al panel y centrarlo
+        gbc.gridy = 2; // Fila 2 (debajo de las opciones)
+        seleccionarPane.add(confirmar, gbc);
+
+        // Mostrar el panel "seleccionar-pane"
+        seleccionarPane.revalidate();
+        seleccionarPane.repaint();
+        cardLayout.show(cardPane, "seleccionar-pane");
     }
 
     @Override
@@ -173,81 +182,56 @@ public class VistaGrafica implements IVista {
     public void finishGame(boolean guardado) {
         JPanel finishPane = jPanelMap.get("finish-pane");
         finishPane.removeAll();
-        finishPane.setLayout(new GridBagLayout()); // Usar GridBagLayout para centrar
-        finishPane.setBackground(BACKGROUND_COLOR); // Fondo azul oscuro
+        finishPane.setLayout(new GridBagLayout());
+        finishPane.setBackground(BACKGROUND_COLOR);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 0, 10, 0); // Espaciado entre componentes
+        gbc.insets = new Insets(10, 0, 10, 0);
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // Mensaje del estado de la partida
-        String mensaje = (controlador.getGanador() != null && !controlador.getGanador().isEmpty())
+        // Determinar el mensaje principal
+        String mensaje = guardado
+                ? "Partida guardada correctamente."
+                : (controlador.getGanador() != null && !controlador.getGanador().isEmpty())
                 ? "¡La partida ha finalizado! Ganador: " + controlador.getGanador()
                 : "Partida cancelada.";
+        finishPane.add(crearEtiqueta(mensaje, 24, Color.WHITE), gbc);
 
-        if (guardado) {
-            mensaje = "Partida guardada correctamente.";
-        }
-
-        JLabel lblMensaje = new JLabel(mensaje);
-        lblMensaje.setFont(new Font("Arial", Font.BOLD, 24));
-        lblMensaje.setForeground(Color.WHITE);
-        finishPane.add(lblMensaje, gbc);
-
-        // Mostrar la mano ganadora solo si no se guardó la partida y no fue cancelada
-        if (!guardado && controlador.getGanador() != null && !controlador.getGanador().isEmpty()) {
-            gbc.gridy++; // Mover a la siguiente fila
-            JLabel lblManoGanadora = new JLabel("Mano ganadora:");
-            lblManoGanadora.setFont(new Font("Arial", Font.BOLD, 24));
-            lblManoGanadora.setForeground(Color.WHITE);
-            finishPane.add(lblManoGanadora, gbc);
-
-            gbc.gridy++; // Mover a la siguiente fila
-            JPanel manoGanadoraPane = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-            manoGanadoraPane.setBackground(BACKGROUND_COLOR);
-
-            Dimension buttonSize = new Dimension(113, 200);
-            for (Carta c : controlador.getManoGanadora()) {
-                JButton button = new JButton();
-                ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
-                Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
-                button.setIcon(new ImageIcon(imagenRedimensionada));
-                button.setBackground(BACKGROUND_COLOR);
-                button.setPreferredSize(buttonSize);
-                manoGanadoraPane.add(button);
+        // Mostrar la mano ganadora si corresponde
+        if (controlador.getGanador() != null) {
+            ArrayList<String> jugadores = controlador.nombreJugadores();
+            finishPane.add(crearEtiqueta("Manos en mesa:", 24, Color.WHITE));
+            for (String nombre : jugadores) {
+                finishPane.add(crearEtiqueta(("Ligaciones de " + nombre + ": "), 24, Color.WHITE));
+                if (controlador.getJugadorActual().equals(nombre)) {
+                    finishPane.add(crearPanelMano(controlador.getManoGanadora(nombre)));
+                } else {
+                    finishPane.add(crearPanelMano(controlador.getManoPerdedora(nombre)));
+                }
             }
-            finishPane.add(manoGanadoraPane, gbc);
         }
 
-        // Mostrar puntajes finales de cada jugador
+        // Mostrar puntajes finales de los jugadores
         ArrayList<String> jugadores = controlador.nombreJugadores();
-        for (String jugador : jugadores) {
-            gbc.gridy++; // Mover a la siguiente fila
-            int puntos = controlador.getPuntaje(jugador);
-            String puntajeMensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
-            JLabel lblPuntaje = new JLabel(puntajeMensaje);
-            lblPuntaje.setFont(new Font("Arial", Font.BOLD, 24));
-            lblPuntaje.setForeground(Color.WHITE);
-            finishPane.add(lblPuntaje, gbc);
+        if (jugadores != null && !jugadores.isEmpty()) {
+            for (String jugador : jugadores) {
+                int puntos = controlador.getPuntaje(jugador);
+                String puntajeMensaje = String.format("El jugador %s tiene %d puntos.", jugador, puntos);
+                gbc.gridy++;
+                finishPane.add(crearEtiqueta(puntajeMensaje, 24, Color.WHITE), gbc);
+            }
         }
 
-        // Botón para cerrar el juego
-        gbc.gridy++; // Mover a la siguiente fila
-        JButton btnCerrar = new JButton("Cerrar juego");
-        btnCerrar.setFont(new Font("Arial", Font.PLAIN, 18));
-        btnCerrar.setBackground(new Color(94, 180, 70));
-        btnCerrar.setForeground(Color.WHITE);
-        btnCerrar.setFocusPainted(false);
-        btnCerrar.addActionListener(_ -> System.exit(0));
+        // Botón para volver al menú
+        gbc.gridy++;
+        JButton btnCerrar = crearBoton(new Color(94, 180, 70), _ -> renderMenu());
         finishPane.add(btnCerrar, gbc);
 
-        // Refrescar el panel
+        // Actualizar el panel
         finishPane.revalidate();
         finishPane.repaint();
-
-        // Mostrar el panel final
         cardLayout.show(cardPane, "finish-pane");
     }
 
@@ -309,11 +293,25 @@ public class VistaGrafica implements IVista {
         JPanel guardarPane = new JPanel();
         cardPane.add(guardarPane, "guardar-pane");
         jPanelMap.put("guardar-pane", guardarPane);
+
+        JPanel seleccionarPane = new JPanel(); // Usa BorderLayout para organizar componentes
+        cardPane.add(seleccionarPane, "seleccionar-pane");
+        jPanelMap.put("seleccionar-pane", seleccionarPane);
+
+        JPanel topPane = new JPanel(); // Usa BorderLayout para organizar componentes
+        cardPane.add(topPane, "top-pane");
+        jPanelMap.put("top-pane", topPane);
     }
 
     // Funciona correctamente.
     private void renderMenu() {
         chinchonFrame.setTitle("Chinchón");
+        chinchonFrame.removeWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                renderExitGame();
+            }
+        });
         JPanel menu = jPanelMap.get("menu-pane");
         menu.removeAll();
         menu.setLayout(new GridBagLayout()); // Cambiamos a GridBagLayout para centrar
@@ -376,6 +374,17 @@ public class VistaGrafica implements IVista {
         btnLoad.setForeground(Color.WHITE);
         btnLoad.addActionListener(_ -> renderLoadGame());
 
+        JButton btnTop = new JButton();
+        btnTop.setFont(new Font("Arial", Font.BOLD, 24));
+        btnTop.setText("Ranking de Jugadores");
+        btnTop.setPreferredSize(buttonSize);
+        btnTop.setBackground(new Color(26, 57, 44, 255));
+        btnTop.setForeground(Color.WHITE);
+        btnTop.addActionListener(_ -> {
+            renderTopJugadores();
+            chinchonFrame.setTitle("Ranking de Jugadores");
+        });
+
         JButton btnRules = new JButton();
         btnRules.setFont(new Font("Arial", Font.BOLD, 24));
         btnRules.setText("Reglas");
@@ -402,13 +411,15 @@ public class VistaGrafica implements IVista {
         btnGbc.gridy++;
         btnPane.add(btnJoin, btnGbc);
         btnGbc.gridy++;
+        btnPane.add(btnTop, btnGbc);
+        btnGbc.gridy++;
         btnPane.add(btnRules, btnGbc);
         btnGbc.gridy++;
         btnPane.add(btnQuit, btnGbc);
 
         // Texto del jugador actual
         JLabel player = new JLabel();
-        player.setText("Estás jugando como: " + this.nombreJugador);
+        player.setText("Bienvenido, " + this.nombreJugador + "!");
         player.setBackground(BACKGROUND_COLOR);
         player.setForeground(Color.WHITE);
         player.setFont(new Font("Arial", Font.BOLD, 16));
@@ -428,6 +439,75 @@ public class VistaGrafica implements IVista {
         cardLayout.show(cardPane, "menu-pane");
     }
 
+    private void renderTopJugadores() {
+        ArrayList<String> topCargado = controlador.getTop();
+        ArrayList<Integer> victorias = controlador.getVictorias();
+
+        JPanel top = jPanelMap.get("top-pane"); // Obtiene el panel existente
+        top.removeAll(); // Limpia cualquier contenido previo
+        top.setBackground(BACKGROUND_COLOR);
+        top.setLayout(new GridBagLayout()); // Configura GridBagLayout para centrar el contenido
+
+        // Crea un JTextArea para mostrar el top
+        JTextArea topArea = new JTextArea();
+        topArea.setEditable(false);
+        topArea.setFont(new Font("Monospaced", Font.BOLD, 14));
+        topArea.setBackground(new Color(2)); // Fondo oscuro para el área de texto
+        topArea.setForeground(Color.WHITE);
+
+        if (topCargado.isEmpty() || victorias.isEmpty()) {
+            topArea.setText("El top 5 de jugadores está vacío.\n");
+        } else {
+            // Construye el encabezado y contenido
+            StringBuilder contenido = new StringBuilder();
+            contenido.append(String.format("%-10s %-20s %s\n", "Puesto", "Nombre", "Victorias"));
+
+            int size = Math.min(topCargado.size(), victorias.size());
+            for (int i = 0; i < size; i++) {
+                contenido.append(String.format("%-10d %-20s %d\n", (i + 1), topCargado.get(i), victorias.get(i)));
+            }
+
+            topArea.setText(contenido.toString());
+        }
+
+        // Envuelve el JTextArea en un JScrollPane para manejar textos largos
+        JScrollPane scrollPane = new JScrollPane(topArea);
+        scrollPane.setPreferredSize(new Dimension(400, 200)); // Ajusta el tamaño del área visible
+
+        // Configura las restricciones de GridBagLayout para el JScrollPane
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.CENTER; // Centra el contenido
+        gbc.fill = GridBagConstraints.NONE; // Ajusta el tamaño del componente según su preferencia
+
+        // Agrega el JScrollPane al panel
+        top.add(scrollPane, gbc);
+
+        // Crea el botón "Volver al Menú"
+        JButton volverButton = new JButton("Volver al Menú");
+        volverButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        volverButton.setBackground(new Color(0x1A392C));
+        volverButton.setForeground(Color.WHITE);
+        volverButton.setFocusPainted(false);
+        volverButton.addActionListener(_ -> cardLayout.show(cardPane, "menu-pane")); // Acción para volver al menú
+
+        // Configura las restricciones de GridBagLayout para el botón
+        gbc.gridy = 1; // Se coloca en la segunda fila
+        gbc.weighty = 0; // No ocupa peso vertical
+        gbc.insets = new Insets(50, 0, 0, 0); // Mayor margen superior para separar del JScrollPane
+
+        // Agrega el botón al panel
+        top.add(volverButton, gbc);
+
+        // Refresca el panel para que se reflejen los cambios
+        top.revalidate();
+        top.repaint();
+        cardLayout.show(cardPane, "top-pane");
+    }
+    
     private void renderLoadGame() {
         chinchonFrame.setTitle("Cargar una Partida");
         JPanel load = jPanelMap.get("load-pane");
@@ -1131,7 +1211,6 @@ public class VistaGrafica implements IVista {
         JTextField campoY = new JTextField(5);
 
         JPanel panel = new JPanel();
-        panel.setBackground(BACKGROUND_COLOR);
         panel.add(new JLabel("N:"));
         panel.add(campoX);
         panel.add(Box.createHorizontalStrut(15)); // Espacio entre campos
@@ -1271,6 +1350,137 @@ public class VistaGrafica implements IVista {
 
     private void deleteJugador() {
         this.nombreJugador = null;
+    }
+
+    // Métodos auxiliares
+    private JLabel crearEtiqueta(String texto, int tamanio, Color color) {
+        JLabel etiqueta = new JLabel(texto);
+        etiqueta.setFont(new Font("Arial", Font.BOLD, tamanio));
+        etiqueta.setForeground(color);
+        etiqueta.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        return etiqueta;
+    }
+
+    private JPanel crearPanelMano(ArrayList<Carta> mano) {
+        JPanel manoPane = new JPanel(new FlowLayout());
+        manoPane.setBackground(BACKGROUND_COLOR);
+
+        if (mano == null || mano.isEmpty()) {
+            manoPane.add(crearEtiqueta("El jugador no tiene ligaciones.", 18, Color.RED));
+            return manoPane;
+        }
+
+        Dimension buttonSize = new Dimension(113, 200);
+        for (Carta c : mano) {
+            JButton button = new JButton();
+            ImageIcon iconoOriginal = new ImageIcon(c.getImagen().getImage());
+            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+            button.setIcon(new ImageIcon(imagenRedimensionada));
+            button.setBackground(BACKGROUND_COLOR);
+            button.setPreferredSize(buttonSize);
+            manoPane.add(button);
+        }
+        return manoPane;
+    }
+
+    private JPanel crearPanelContinuar(int totalJugadores) {
+        JPanel readyPanel = new JPanel(new FlowLayout());
+        readyPanel.setBackground(BACKGROUND_COLOR);
+
+        JLabel readyLabel = new JLabel("Jugadores listos: 0/" + totalJugadores);
+        readyLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        readyLabel.setForeground(Color.WHITE);
+
+        JButton btnContinuar = new JButton("Continuar");
+        btnContinuar.setFont(new Font("Arial", Font.BOLD, 18));
+        btnContinuar.setPreferredSize(new Dimension(200, 50));
+        btnContinuar.setBackground(new Color(135, 255, 75));
+        btnContinuar.setForeground(Color.BLACK);
+
+        btnContinuar.addActionListener(_ -> iniciarTurnos());
+
+        readyPanel.add(btnContinuar);
+        readyPanel.add(readyLabel);
+        return readyPanel;
+    }
+
+    private void mostrarError(JPanel panel) {
+        panel.add(crearEtiqueta("Error: No se pudieron obtener los jugadores.", 24, Color.RED));
+        panel.revalidate();
+        panel.repaint();
+    }
+
+    private JPanel crearPanelCartas(ArrayList<Carta> cartas) {
+        JPanel panelCartas = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        panelCartas.setBackground(BACKGROUND_COLOR);
+
+        Dimension buttonSize = new Dimension(113, 200);
+        for (Carta carta : cartas) {
+            JButton botonCarta = crearBotonCarta(carta, buttonSize);
+            panelCartas.add(botonCarta);
+        }
+        return panelCartas;
+    }
+
+    private JButton crearBotonCarta(Carta carta, Dimension buttonSize) {
+        JButton boton = new JButton();
+        ImageIcon iconoOriginal = new ImageIcon(carta.getImagen().getImage());
+        Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(
+                buttonSize.width, buttonSize.height, Image.SCALE_SMOOTH);
+        boton.setIcon(new ImageIcon(imagenRedimensionada));
+        boton.setPreferredSize(buttonSize);
+        boton.setBackground(BACKGROUND_COLOR);
+        boton.setFocusPainted(false);
+        boton.setBorderPainted(false);
+        return boton;
+    }
+
+    private JButton crearBoton(Color fondo, ActionListener accion) {
+        JButton boton = new JButton("Volver al Menú");
+        boton.setFont(new Font("Arial", Font.PLAIN, 18));
+        boton.setBackground(fondo);
+        boton.setForeground(Color.WHITE);
+        boton.setFocusPainted(false);
+        boton.addActionListener(accion);
+        return boton;
+    }
+
+    private JButton seleccionarButton(JRadioButton[] opciones) {
+        deleteJugador();
+        JButton confirmar = new JButton("Confirmar");
+        confirmar.setFont(new Font("Arial", Font.PLAIN, 18));
+        confirmar.setBackground(Color.green);
+        confirmar.setForeground(Color.WHITE);
+        confirmar.setFocusPainted(false);
+        confirmar.addActionListener(_ -> {
+            for (JRadioButton opcion : opciones) {
+                if (opcion.isSelected()) {
+                    String seleccion = opcion.getText();
+                    if (controlador.seleccionarJugador(seleccion)) {
+                        JOptionPane.showMessageDialog(chinchonFrame,
+                                "Has seleccionado el jugador: " + seleccion,
+                                "Jugador seleccionado", JOptionPane.INFORMATION_MESSAGE);
+                        setJugador(seleccion);
+                        opcion.setEnabled(false); // Deshabilitar opción seleccionada
+                        if (controlador.jugadoresSeleccionadosSize() == 2) {
+                            controlador.iniciarPartida();
+                        } else {
+                            renderWaitingPlayers();
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(chinchonFrame,
+                                "El jugador ya ha sido seleccionado. Intenta nuevamente.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                    return;
+                }
+            }
+            JOptionPane.showMessageDialog(chinchonFrame,
+                    "Por favor selecciona un jugador.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        });
+
+        return confirmar;
     }
 
     private void notificar(String msg) {

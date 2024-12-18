@@ -121,7 +121,6 @@ public class Mano implements Serializable {
         return true;
     }
 
-
     /**
      * Indica si las cartas dadas (sus posiciones en la mano) tienen el mismo
      * palo, con lo cual forman un juego. Son necesarias 3 cartas como mínimo
@@ -176,7 +175,6 @@ public class Mano implements Serializable {
         }
         return true;
     }
-
 
     /**
      * Indica si las cartas dadas forman, chinchon, dos grupos de tres o un grupo de tres cartas y otro de cuatro.
@@ -407,15 +405,54 @@ public class Mano implements Serializable {
         cartas.clear();
     }
 
-    public ArrayList<Carta> getManoGanadora() {
-        ArrayList<Carta> manoGanadora = new ArrayList<>();
+    public ArrayList<Carta> getLigaciones() {
+        ArrayList<Carta> ligaciones = new ArrayList<>();
         if ((esChinchon() || verificarGrupos(3, 4, false) || verificarGrupos(4, 3, false)) && cartas.size() == 7) {
-            manoGanadora.addAll(cartas);
+            ligaciones.addAll(cartas);
         } else if (verificarGrupos(3, 3, false)) {
             for (int i = 0; i < 6; i++) {
-                manoGanadora.add(cartas.get(i));
+                ligaciones.add(cartas.get(i));
             }
         }
-        return manoGanadora;
+        return ligaciones;
+    }
+
+    public ArrayList<Carta> getLigacionesPerdedor() {
+        ArrayList<Carta> ligaciones = new ArrayList<>();
+        if ((esChinchon() || verificarGrupos(3, 4, false) || verificarGrupos(4, 3, false)) && cartas.size() == 7) {
+            ligaciones.addAll(cartas);
+        } else if (verificarGrupos(3, 3, false)) {
+            for (int i = 0; i < 6; i++) {
+                ligaciones.add(cartas.get(i));
+            }
+        } else {
+            ArrayList<Integer> posiciones = new ArrayList<>();
+            for (int i = 0; i < cartas.size(); i++) {
+                posiciones.add(i);
+            }
+
+            int[] grupo1 = new int[3];
+            int[] grupo2 = new int[4];
+
+            for (int k = 0; k < 3; k++) {
+                grupo1[k] = posiciones.get(k);
+            }
+            for (int k = 0; k < 4; k++) {
+                grupo2[k] = posiciones.get(k);
+            }
+
+            if ((iguales(grupo2) || (escalera(grupo2)))) {
+                for (int i = 0; i < 4; i++) {
+                    ligaciones.add(cartas.get(i));
+
+                }
+                return ligaciones;
+            } else if ((iguales(grupo1) || (escalera(grupo1)))) {
+                for (int i = 0; i < 3; i++) {
+                    ligaciones.add(cartas.get(i));
+                }
+            }
+        }
+        return ligaciones;
     }
 }
